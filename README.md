@@ -94,7 +94,7 @@ Definition wf (c : config) : Prop := NoDup (alphabet c) /\ ~ In pad_char (alphab
 | `MetaRocqString` | `encode_bs`/`decode_bs` over `MetaRocq.Utils.bytestring.String.t` |
 | `StdStrings` | `encode_str`/`decode_str` over stdlib `String.string` |
 | `PrimStrings` | `encode_ps`/`decode_ps` over `PrimString.string` |
-| `Equiv` | the conversions between those three, and the `base64` rewrite database |
+| `Equiv` | the conversions between those four, and the `base64` rewrite database |
 | `Tests` | RFC 4648 §10 vectors and the strictness cases above, checked by `make` |
 | `All` | re-exports everything but `Tests` |
 

@@ -10,7 +10,7 @@
 
 From Stdlib Require Import Strings.Byte Strings.String Lists.List.
 From Stdlib Require Import Strings.PrimString Strings.PrimStringAxioms.
-From Base64 Require Import Alphabet Base64 MetaRocqString PrimStrings.
+From Base64 Require Import Alphabet Base64 MetaRocqString StdStrings PrimStrings.
 Import ListNotations.
 
 (** ** Byte lists *)
@@ -96,6 +96,23 @@ Proof. reflexivity. Qed.
 Example decode_bs_foob : decode_bs standard (bs "Zm9vYg==") = Some (bs "foob").
 Proof. reflexivity. Qed.
 Example decode_bs_reject : decode_bs standard (bs "QR==") = None.
+Proof. reflexivity. Qed.
+
+(** ** Standard library strings *)
+
+(* The literals on the right of [=] are not in an argument position, so
+   [Bind Scope] does not reach them. *)
+Open Scope string_scope.
+
+Example encode_str_foobar : encode_str standard "foobar" = "Zm9vYmFy".
+Proof. reflexivity. Qed.
+Example encode_str_foob : encode_str standard "foob" = "Zm9vYg==".
+Proof. reflexivity. Qed.
+Example encode_str_url_foob : encode_str url "foob" = "Zm9vYg".
+Proof. reflexivity. Qed.
+Example decode_str_foob : decode_str standard "Zm9vYg==" = Some "foob".
+Proof. reflexivity. Qed.
+Example decode_str_reject : decode_str standard "QR==" = None.
 Proof. reflexivity. Qed.
 
 (** ** Primitive strings *)

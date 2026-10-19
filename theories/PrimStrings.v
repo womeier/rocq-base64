@@ -5,7 +5,8 @@
     [list char63], so base64 on primitive strings is the core development
     transported along a byte / [char63] conversion.
 
-    Unlike the bytestring bridge, this one is not unconditional: a primitive
+    Unlike the bytestring and standard-string bridges, this one is not
+    unconditional: a primitive
     string cannot be longer than [max_length], and encoding grows its input by
     a third. So the statements that build a string carry a length side
     condition, while those that only consume one do not -- a primitive string

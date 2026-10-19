@@ -5,6 +5,7 @@ theories/Sextet.v
 theories/Alphabet.v
 theories/Base64.v
 theories/MetaRocqString.v
+theories/StdStrings.v
 theories/PrimStrings.v
 theories/Equiv.v
 theories/Tests.v
