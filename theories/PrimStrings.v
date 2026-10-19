@@ -15,7 +15,7 @@ From Stdlib Require Import Strings.Byte Lists.List.
 From Stdlib Require Import ZArith Lia.
 From Stdlib Require Import Numbers.Cyclic.Int63.Uint63.
 From Stdlib Require Strings.PrimString Strings.PrimStringAxioms Strings.PString.
-From base64 Require Import Sextet Alphabet Base64.
+From Base64 Require Import Sextet Alphabet Base64.
 Import ListNotations.
 
 Notation pstring := PrimString.string.

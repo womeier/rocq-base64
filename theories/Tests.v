@@ -10,7 +10,7 @@
 
 From Stdlib Require Import Strings.Byte Strings.String Lists.List.
 From Stdlib Require Import Strings.PrimString Strings.PrimStringAxioms.
-From base64 Require Import Alphabet Base64 MetaRocqString PrimStrings.
+From Base64 Require Import Alphabet Base64 MetaRocqString PrimStrings.
 Import ListNotations.
 
 (** ** Byte lists *)

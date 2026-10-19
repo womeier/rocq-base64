@@ -13,7 +13,7 @@
 From Stdlib Require Import extraction.Extraction.
 From Stdlib Require Import extraction.ExtrOcamlBasic.
 From Stdlib Require Import Strings.Byte.
-From base64 Require Import Alphabet Base64.
+From Base64 Require Import Alphabet Base64.
 
 Definition byte_to_nat := Byte.to_nat.
 Definition byte_of_nat := Byte.of_nat.

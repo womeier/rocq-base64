@@ -1,4 +1,4 @@
--Q theories base64
+-Q theories Base64
 
 theories/Util.v
 theories/Sextet.v

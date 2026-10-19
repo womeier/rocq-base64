@@ -12,7 +12,7 @@
 
 From Stdlib Require Import Strings.Byte Strings.String Lists.List.
 From Stdlib Require Import Arith.PeanoNat Lia.
-From base64 Require Import Util Sextet.
+From Base64 Require Import Util Sextet.
 Import ListNotations.
 
 (** [Util.index_of] is generic in the equality test; these are its instances

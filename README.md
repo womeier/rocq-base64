@@ -26,7 +26,7 @@ TODO: upload to opam, and nixpkgs.
 ## Examples
 
 ```coq
-From base64 Require Import All.
+From Base64 Require Import All.
 From Stdlib Require Import Strings.String.   (* for list_byte_of_string *)
 
 (* bytes *)

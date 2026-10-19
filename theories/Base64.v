@@ -15,7 +15,7 @@
 
 From Stdlib Require Import Strings.Byte Lists.List.
 From Stdlib Require Import Arith.PeanoNat Lia.
-From base64 Require Import Util Sextet Alphabet.
+From Base64 Require Import Util Sextet Alphabet.
 Import ListNotations.
 
 (** ** Encoding *)

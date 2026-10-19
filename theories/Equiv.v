@@ -13,7 +13,7 @@ From Stdlib Require Import Strings.Byte Lists.List.
 From Stdlib Require Import ZArith Lia.
 From Stdlib Require Import Numbers.Cyclic.Int63.Uint63.
 From Stdlib Require Strings.PrimString Strings.PrimStringAxioms Strings.PString.
-From base64 Require Import Util Sextet Alphabet Base64 MetaRocqString PrimStrings.
+From Base64 Require Import Util Sextet Alphabet Base64 MetaRocqString PrimStrings.
 Import ListNotations.
 
 (** ** Converting directly between bytestrings and primitive strings *)

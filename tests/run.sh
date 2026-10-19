@@ -28,7 +28,7 @@ make -j"$(nproc)" >/dev/null
 say "extracting theories/Base64.v to OCaml"
 rm -rf tests/extracted
 mkdir -p tests/extracted
-rocq c -Q theories base64 tests/Extraction.v
+rocq c -Q theories Base64 tests/Extraction.v
 
 say "compiling the extracted encoder/decoder"
 cp tests/harness.ml tests/extracted/

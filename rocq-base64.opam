@@ -31,7 +31,7 @@ tags: [
   "keyword:RFC 4648"
   "keyword:strings"
   "keyword:bytes"
-  "logpath:base64"
+  "logpath:Base64"
 ]
 authors: [
   "Wolfgang Meier"

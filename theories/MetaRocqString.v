@@ -11,7 +11,7 @@
 
 From Stdlib Require Import Strings.Byte Lists.List Arith.PeanoNat.
 From MetaRocq.Utils Require bytestring.
-From base64 Require Import Sextet Alphabet Base64.
+From Base64 Require Import Sextet Alphabet Base64.
 Import ListNotations.
 
 (** Introduced under an abbreviation: MetaRocq's [String] module would
