@@ -8,37 +8,22 @@
 [license-shield]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-link]: LICENSE
 
-Base64 encoding and **strict** decoding in Rocq, following
-[RFC 4648](https://www.rfc-editor.org/rfc/rfc4648), proved correct in both
-directions:
+Base64 encoding and **strict** decoding in Rocq, following [RFC 4648](https://www.rfc-editor.org/rfc/rfc4648),
+proved correct in both directions:
 
 ```coq
 Theorem decode_encode c bs : wf c -> decode c (encode c bs) = Some bs.
 Theorem encode_decode c l bs : wf c -> decode c l = Some bs -> encode c bs = l.
 ```
-
-The core theory is over `list Byte.byte`. On top of it sit two bridges — to
-MetaRocq's bytestrings and to Rocq's primitive strings — each with the rewrite
-lemmas that push conversions out of the way so goals about either
-representation normalize back to the byte-list theory.
-
-- Rocq 9.1 (the version MetaRocq 1.5.1 is packaged for, and the version
-  CertiRocq pins)
-- Depends only on `rocq-stdlib` and `rocq-metarocq-utils`
-- No axioms beyond Rocq's own primitive-string axioms, and those only on the
-  primitive-string path — `Print Assumptions decode_encode` reports *Closed
-  under the global context*
+The core theory is over `list Byte.byte`.
+There are also bridges to MetaRocq's bytestrings and to Rocq's primitive strings.
 
 ## Install
+Currently, the author recommend using the nix-based setup.
+TODO: upload to opam, and nixpkgs.
 
-```shell
-git clone https://github.com/womeier/rocq-base64.git
-cd rocq-base64
-nix-shell          # or: opam install . --deps-only
-make
-```
 
-## Usage
+## Examples
 
 ```coq
 From base64 Require Import All.
@@ -161,36 +146,14 @@ Theorem encode_ps_decode_ps c s t : wf c -> decode_ps c s = Some t -> encode_ps 
 carries a length bound. `decode_ps_encode_ps'` restates it in the dischargeable
 form `2 * length s + 4 <= max_length`.
 
-## Differential test
+## Tests
 
 `make difftest` extracts `encode`/`decode` to OCaml and compares them against
 the Rust [`base64`](https://github.com/marshallpierce/rust-base64) crate on
 ~1.5M cases, all of which currently agree.
 
-Rust's standard library has no base64; that crate is the de-facto
-implementation, and it is the right oracle here because its decoder is strict
-in exactly the same places ours is — it rejects non-canonical trailing bits by
-default, `STANDARD` requires canonical padding, and `URL_SAFE_NO_PAD` requires
-none. (Python's `base64.b64decode(..., validate=True)` accepts `"QR=="`, so it
-would report false mismatches.)
-
-The corpus is not invented: each family is ported from the crate's own test
-suite — the RFC vectors, the exhaustive 64² and 64³ final-quad scans, the
-eprint 2022/361 malleability table, the padding-mode and trailing-byte
-families — plus seeded random roundtrips and decoder fuzzing. The crate's suite
-cannot be run against us directly, as it is written against its internal
-`Engine` trait (`internal_encode`, `decode_slice_unchecked`, `DecodeEstimate`),
-i.e. against buffer-level details a whole-string `encode`/`decode` does not
-have; so the inputs are reused and both implementations are asked for their
-answers, which compares behaviour on every case instead of against a
-hard-coded expectation.
-
-`make difftest` needs `ocaml`, `cargo` and `rustc` — `nix-shell` provides them
-— and it fetches one crate, so it is not part of CI, which has no network.
-`tests/reference/Cargo.lock` pins the exact version.
 
 ## Limitations
-
 - `dec_byte` is a linear scan of a 64-element table, and the primitive-string
   path converts through `list byte`. Fine for moderate inputs; a
   `PrimInt63`-arithmetic fast path proved equal to the generic one is the

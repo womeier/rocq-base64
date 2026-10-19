@@ -2,7 +2,7 @@
 # template generator is not used by this project.
 
 opam-version: "2.0"
-maintainer: "womeier@posteo.de"
+maintainer: "Wolfgang Meier"
 version: "dev"
 
 homepage: "https://github.com/womeier/rocq-base64"
@@ -12,13 +12,10 @@ license: "MIT"
 
 synopsis: "Verified RFC 4648 base64 encoding and decoding in Rocq"
 description: """
-Base64 encoding and strict decoding over lists of bytes, proved correct in
-both directions, parameterized over the alphabet and over whether the output
-is padded.  Ships the RFC 4648 section 4 (standard) and section 5 (base64url)
-alphabets, together with bridges that lift the whole theory to MetaRocq's
-bytestrings and to Rocq's primitive strings, plus the rewrite lemmas that
-normalize goals about either representation back to the core byte-list
-theory."""
+Base64 encoding and decoding.
+Ships the RFC 4648 section 4 (standard) and section 5 (base64url) alphabets,
+together with bridges that lift the whole theory to MetaRocq's
+bytestrings and to Rocq's primitive strings."""
 
 build: [make "-j%{jobs}%"]
 install: [make "install"]
