@@ -1,6 +1,3 @@
-# This file is kept in sync with `meta.yml` by hand; the coq-community
-# template generator is not used by this project.
-
 opam-version: "2.0"
 maintainer: "Wolfgang Meier"
 version: "dev"
@@ -15,14 +12,15 @@ description: """
 Base64 encoding and decoding.
 Ships the RFC 4648 section 4 (standard) and section 5 (base64url) alphabets,
 together with bridges that lift the whole theory to MetaRocq's
-bytestrings and to Rocq's primitive strings."""
+bytestrings, to the standard library's strings and to Rocq's primitive strings.
+"""
 
 build: [make "-j%{jobs}%"]
 install: [make "install"]
 depends: [
-  "rocq-core" {>= "9.1" & < "9.2~"}
-  "rocq-stdlib" {>= "9.1" & < "9.2~"}
-  "rocq-metarocq-utils" {>= "1.5.1"}
+  "rocq-core" {>= "9.0" }
+  "rocq-stdlib"
+  "rocq-metarocq-utils" {>= "1.4"}
 ]
 
 tags: [

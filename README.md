@@ -16,10 +16,14 @@ Theorem decode_encode c bs : wf c -> decode c (encode c bs) = Some bs.
 Theorem encode_decode c l bs : wf c -> decode c l = Some bs -> encode c bs = l.
 ```
 The core theory is over `list Byte.byte`.
-There are also bridges to MetaRocq's bytestrings and to Rocq's primitive strings.
+
+There are also bridges to MetaRocq's bytestrings, to the standard library's
+`String.string` and to Rocq's primitive strings.
 
 ## Install
-Currently, the author recommend using the nix-based setup.
+Currently, the author recommend using the nix-based setup. `nix-build` builds
+the library against Rocq 9.1; `nix-build --argstr bundle 9.0` and
+`--argstr bundle 9.2` build it against those, and all three run in CI.
 TODO: upload to opam, and nixpkgs.
 
 
@@ -37,6 +41,10 @@ Compute decode url (list_byte_of_string "Zm9vYg").
 
 (* MetaRocq bytestrings *)
 Compute encode_bs standard (BS.parse (list_byte_of_string "foobar")).
+
+(* stdlib strings *)
+Compute encode_str standard "foobar".   (* = "Zm9vYmFy"%string *)
+Compute decode_str url "Zm9vYg".        (* = Some "foob"%string *)
 
 (* primitive strings.  `All` only `Require`s `PrimString`, so that it does not
    shadow `String.string`; import it yourself to get the `"..."` literals. *)
@@ -59,12 +67,10 @@ Definition wf (c : config) : Prop := NoDup (alphabet c) /\ ~ In pad_char (alphab
 | `url`        | `-` | `_` | no  | §5, "base64url" (JWT style) |
 | `url_padded` | `-` | `_` | yes | §5 with padding |
 
-`standard_wf`, `url_wf` and `url_padded_wf` discharge `wf` by computation.
 
 ## What "strict" means
-
-`decode` returns `None` — it does not round down, skip, or accept — for every
-input that is not the unique canonical encoding of some byte string:
+`decode` has no malleability in the sense of [eprint 2022/361](https://eprint.iacr.org/2022/361.pdf).
+`decode` only accepts correct inputs, returns `None` otherwise.
 
 | Input | Why rejected |
 |---|---|
@@ -76,9 +82,6 @@ input that is not the unique canonical encoding of some byte string:
 | `"Zg"`, `"Zg="` | missing or short padding, under a padded config |
 | `"Zg=="` under `url` | padding present, under an unpadded config |
 
-This is what buys the second roundtrip direction: `encode_decode` says every
-accepted input is re-encoded to itself, so `decode` has no malleability in the
-sense of [eprint 2022/361](https://eprint.iacr.org/2022/361.pdf).
 
 ## Modules
 
@@ -89,68 +92,34 @@ sense of [eprint 2022/361](https://eprint.iacr.org/2022/361.pdf).
 | `Alphabet` | `config`, `wf`, the shipped alphabets, `enc_sextet`/`dec_byte` |
 | `Base64` | `encode`, `decode`, both roundtrip theorems, `encode_length`, `encode_charset`, `encode_app` |
 | `MetaRocqString` | `encode_bs`/`decode_bs` over `MetaRocq.Utils.bytestring.String.t` |
+| `StdStrings` | `encode_str`/`decode_str` over stdlib `String.string` |
 | `PrimStrings` | `encode_ps`/`decode_ps` over `PrimString.string` |
-| `Equiv` | bytestring ↔ primitive string, and the `base64` rewrite database |
+| `Equiv` | the conversions between those three, and the `base64` rewrite database |
 | `Tests` | RFC 4648 §10 vectors and the strictness cases above, checked by `make` |
 | `All` | re-exports everything but `Tests` |
 
-### Rewriting
-
-`Equiv` exports `base64_simpl`, which is `autorewrite with base64` plus a
-reduction of `option_map`. The database holds the unfolding equations
-(`encode_bs_eq`, `decode_ps_eq`, …), the conversion-elimination lemmas
-(`print_parse`, `parse_print`, `pstring_of_bytes_of_pstring`,
-`pstring_of_bs_of_pstring`, …) and the commutation lemmas (`print_encode_bs`,
-`encode_bs_parse`, `decode_bs_of_pstring`, …). Together they take a goal stated
-over bytestrings or primitive strings down to one over `list byte`, where
-`decode_encode` and `encode_decode` apply:
-
-```coq
-Goal forall c s, wf c -> decode_bs c (encode_bs c s) = Some s.
-Proof.
-  intros c s Hwf. base64_simpl.
-  rewrite decode_encode by exact Hwf. base64_simpl. reflexivity.
-Qed.
-```
-
-On the primitive-string side the same script works, with the `max_length`
-bound as the only remaining obligation:
-
-```coq
-Goal forall c s,
-  wf c ->
-  (Z.of_nat (length (encode c (bytes_of_pstring s))) <= Uint63.to_Z PrimString.max_length)%Z ->
-  decode_ps c (encode_ps c s) = Some s.
-Proof.
-  intros c s Hwf Hlen. base64_simpl.
-  rewrite bytes_of_pstring_of_bytes by exact Hlen.
-  rewrite decode_encode by exact Hwf. base64_simpl. reflexivity.
-Qed.
-```
-
-(Both of these are already proved, as `decode_bs_encode_bs` and
-`decode_ps_encode_ps`; they are shown here as the shape a user's own proof
-takes.)
-
-### Primitive strings and `max_length`
-
-The two directions are not symmetric, and the asymmetry is real rather than a
-proof artifact. *Consuming* a primitive string needs no side condition, because
-an existing `pstring` is already short enough:
-
-```coq
-Theorem encode_ps_decode_ps c s t : wf c -> decode_ps c s = Some t -> encode_ps c t = s.
-```
-
-*Producing* one can overflow `PrimString.max_length`, so `decode_ps_encode_ps`
-carries a length bound. `decode_ps_encode_ps'` restates it in the dischargeable
-form `2 * length s + 4 <= max_length`.
+`Equiv` exports the tactic `base64_simpl`, which takes a goal over
+bytestrings, stdlib strings or primitive strings down to one over `list byte`,
+where `decode_encode` and `encode_decode` apply. See the comment above it in
+`theories/Equiv.v`.
 
 ## Tests
 
 `make difftest` extracts `encode`/`decode` to OCaml and compares them against
 the Rust [`base64`](https://github.com/marshallpierce/rust-base64) crate on
-~1.5M cases, all of which currently agree.
+~1.5M cases, all of which currently agree. It needs `rocq`, `ocamlopt` and
+`cargo`; `nix-shell --argstr job base64-testsuite` provides all three.
+
+The same comparison runs in CI as the `base64-testsuite` job, so it can also
+be run as a package:
+
+```sh
+nix-build --argstr job base64-testsuite
+```
+
+That derivation (`.nix/rocq-overlays/base64-testsuite`) takes the crate from
+`tests/reference/Cargo.lock` and the library from the `base64` package, which
+is what lets it run in a sandbox without network access.
 
 
 ## Limitations
@@ -158,6 +127,4 @@ the Rust [`base64`](https://github.com/marshallpierce/rust-base64) crate on
   path converts through `list byte`. Fine for moderate inputs; a
   `PrimInt63`-arithmetic fast path proved equal to the generic one is the
   obvious follow-up for large payloads.
-- No bridge to stdlib `String.string` (a list of `ascii`). It is about ten
-  lines via `list_byte_of_string`/`string_of_list_byte` if wanted.
 - No streaming interface; `encode_app` is the only compositionality lemma.
