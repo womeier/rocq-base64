@@ -1,0 +1,41 @@
+# This file is kept in sync with `meta.yml` by hand; the coq-community
+# template generator is not used by this project.
+
+opam-version: "2.0"
+maintainer: "womeier@posteo.de"
+version: "dev"
+
+homepage: "https://github.com/womeier/rocq-base64"
+dev-repo: "git+https://github.com/womeier/rocq-base64.git"
+bug-reports: "https://github.com/womeier/rocq-base64/issues"
+license: "MIT"
+
+synopsis: "Verified RFC 4648 base64 encoding and decoding in Rocq"
+description: """
+Base64 encoding and strict decoding over lists of bytes, proved correct in
+both directions, parameterized over the alphabet and over whether the output
+is padded.  Ships the RFC 4648 section 4 (standard) and section 5 (base64url)
+alphabets, together with bridges that lift the whole theory to MetaRocq's
+bytestrings and to Rocq's primitive strings, plus the rewrite lemmas that
+normalize goals about either representation back to the core byte-list
+theory."""
+
+build: [make "-j%{jobs}%"]
+install: [make "install"]
+depends: [
+  "rocq-core" {>= "9.1" & < "9.2~"}
+  "rocq-stdlib" {>= "9.1" & < "9.2~"}
+  "rocq-metarocq-utils" {>= "1.5.1"}
+]
+
+tags: [
+  "category:Computer Science/Data Types and Data Structures"
+  "keyword:base64"
+  "keyword:RFC 4648"
+  "keyword:strings"
+  "keyword:bytes"
+  "logpath:base64"
+]
+authors: [
+  "Wolfgang Meier"
+]

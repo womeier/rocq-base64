@@ -1,0 +1,10 @@
+[package]
+name = "b64ref"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+base64 = "0.22.1"
+
+[profile.release]
+opt-level = 2
