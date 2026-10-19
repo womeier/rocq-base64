@@ -21,7 +21,8 @@ There are also bridges to MetaRocq's bytestrings, to the standard library's
 
 
 ## Install
-Currently, the author recommends using the nix-based setup.
+This library is currently in an experimental stage.
+The author uses the nix-based setup.
 
 
 ## Examples
