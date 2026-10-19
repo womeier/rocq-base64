@@ -5,14 +5,28 @@
     to a multiple of four characters. Both are captured by [config] here, so
     the entire development below is proved once and applies to every variant.
 
-    The two variants the RFC names are provided as [standard] (section 4) and
-    [url] (section 5). The latter is unpadded, matching how base64url is
-    normally used in URLs and JWTs; [url_padded] is there for the rarer padded
-    reading of section 5. *)
+    The RFC names exactly two: "base64", the section 4 alphabet with [+] and
+    [/], and "base64url", the section 5 alphabet with [-] and [_]. Those names
+    denote the alphabets. Whether to pad is a separate question, settled for
+    both by section 3.2, which requires padding unless the specification
+    referring to the RFC explicitly says otherwise.
+
+    So the four configurations below are the two named alphabets crossed with
+    that padding bit, and all four are conformant. None of them has an RFC
+    name of its own: [standard_padded] and [standard_unpadded] are both
+    "base64", [url_padded] and [url_unpadded] are both "base64url".
+
+    What does differ is how much the RFC says about each. Section 5 expects
+    the unpadded case -- it observes that [=] must be percent-encoded in a
+    URI and that "this can be avoided by skipping the padding", pointing at
+    section 3.2 -- and JWS then requires it (RFC 7515 section 2). Section 4,
+    by contrast, never mentions dropping the padding, and section 3.2 notes
+    that the base64 alphabet *does* use it. [standard_unpadded] is therefore
+    the one corner resting on the escape clause alone. *)
 
 From Stdlib Require Import Strings.Byte Strings.String Lists.List.
 From Stdlib Require Import Arith.PeanoNat Lia.
-From base64 Require Import Util Sextet.
+From Base64 Require Import Util Sextet.
 Import ListNotations.
 
 (** [Util.index_of] is generic in the equality test; these are its instances
@@ -38,8 +52,8 @@ Definition bindex_of_not_In := index_of_not_In Byte.eqb byte_eqb_true.
 (** ** Configurations *)
 
 Record config := {
-  char62 : byte;   (** the character encoding the value 62 *)
-  char63 : byte;   (** the character encoding the value 63 *)
+  char_62 : byte;  (** the character encoding the value 62 *)
+  char_63 : byte;  (** the character encoding the value 63 *)
   pad : bool       (** whether to emit (and require) [=] padding *)
 }.
 
@@ -49,32 +63,61 @@ Definition base_chars : list byte :=
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".
 
 Definition alphabet (c : config) : list byte :=
-  base_chars ++ [char62 c; char63 c].
+  base_chars ++ [char_62 c; char_63 c].
 
 Definition pad_char : byte := "="%byte.
 
-Definition standard   : config := {| char62 := "+"; char63 := "/"; pad := true  |}.
-Definition url        : config := {| char62 := "-"; char63 := "_"; pad := false |}.
-Definition url_padded : config := {| char62 := "-"; char63 := "_"; pad := true  |}.
+(** The four configurations, named so that each states its own padding. The
+    alternative -- letting a bare alphabet name carry an implicit padding and
+    marking only the deviation -- reads well one name at a time but cannot be
+    made consistent, because the two alphabets differ in what their usual
+    padding is. *)
+
+Definition standard_padded   : config := {| char_62 := "+"; char_63 := "/"; pad := true  |}.
+Definition url_padded        : config := {| char_62 := "-"; char_63 := "_"; pad := true  |}.
+Definition url_unpadded      : config := {| char_62 := "-"; char_63 := "_"; pad := false |}.
+
+(** "base64" with the padding skipped under section 3.2. Section 4 never
+    mentions doing so -- unlike section 5, which does -- so of the four this
+    is the corner the RFC says least about, though it remains conformant when
+    a referring specification calls for it. Shipped because the combination
+    does turn up in practice, and because leaving one corner of a square
+    [config] already expresses without a name is the odd choice. *)
+Definition standard_unpadded : config := {| char_62 := "+"; char_63 := "/"; pad := false |}.
+
+(** The two readings in common use, kept short: "base64" is padded and
+    "base64url" is not, which is what the RFC and practice expect of each.
+    These are abbreviations, not separate configurations, so everything proved
+    about the explicit names applies to them directly.
+
+    Beware when porting code: the Rust [base64] crate spells its four the
+    other way round, with a bare name always meaning padded. Its [URL_SAFE] is
+    [url_padded] here, and its [URL_SAFE_NO_PAD] is [url] -- so [url] and
+    [URL_SAFE] look alike and differ. *)
+Notation standard := standard_padded.
+Notation url := url_unpadded.
 
 (** ** Well-formed configurations
 
     A configuration makes sense when its 64 characters are distinct and none of
     them is the padding character. Everything proved about base64 below assumes
-    only this, so a user-supplied alphabet gets the whole theory for free. *)
+    only this, and each of the four shipped configurations comes with its own
+    proof below, so the theorems apply to them directly. *)
 
-Definition wf (c : config) : Prop :=
+Definition wf_config (c : config) : Prop :=
   NoDup (alphabet c) /\ ~ In pad_char (alphabet c).
 
-(** [wf] is decidable, which is how the shipped configurations discharge it. *)
+(** [wf_config] is decidable, which is how the four shipped configurations
+    discharge it below. The checker is [Local]: a caller works with those four
+    and never needs to run it. *)
 
-Fixpoint nodup_check (l : list byte) : bool :=
+Local Fixpoint nodup_check (l : list byte) : bool :=
   match l with
   | [] => true
   | x :: l => andb (negb (existsb (Byte.eqb x) l)) (nodup_check l)
   end.
 
-Lemma nodup_check_sound l : nodup_check l = true -> NoDup l.
+Local Lemma nodup_check_sound l : nodup_check l = true -> NoDup l.
 Proof.
   induction l as [|x l IH]; intros H; [constructor|].
   cbn in H. apply Bool.andb_true_iff in H as [Hx Hl].
@@ -85,13 +128,13 @@ Proof.
   now apply Byte.byte_dec_lb.
 Qed.
 
-Definition wf_check (c : config) : bool :=
+Local Definition wf_check (c : config) : bool :=
   andb (nodup_check (alphabet c))
        (negb (existsb (Byte.eqb pad_char) (alphabet c))).
 
-Lemma wf_check_sound c : wf_check c = true -> wf c.
+Local Lemma wf_check_sound c : wf_check c = true -> wf_config c.
 Proof.
-  unfold wf_check, wf. intros H. apply Bool.andb_true_iff in H as [Hnd Hpad].
+  unfold wf_check, wf_config. intros H. apply Bool.andb_true_iff in H as [Hnd Hpad].
   split; [now apply nodup_check_sound|].
   apply Bool.negb_true_iff in Hpad. intros Hin.
   enough (existsb (Byte.eqb pad_char) (alphabet c) = true) by congruence.
@@ -99,13 +142,16 @@ Proof.
   now apply Byte.byte_dec_lb.
 Qed.
 
-Lemma standard_wf : wf standard.
+Lemma standard_padded_wf : wf_config standard_padded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
-Lemma url_wf : wf url.
+Lemma url_padded_wf : wf_config url_padded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
-Lemma url_padded_wf : wf url_padded.
+Lemma url_unpadded_wf : wf_config url_unpadded.
+Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
+
+Lemma standard_unpadded_wf : wf_config standard_unpadded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
 (** ** Sextets and alphabet characters
@@ -126,7 +172,7 @@ Definition dec_byte (c : config) (b : byte) : option sextet :=
 Lemma sextet_to_nat_to_sextet n : n < 64 -> sextet_to_nat (nat_to_sextet n) = n.
 Proof. intros H. do 64 (destruct n as [|n]; [reflexivity|]). lia. Qed.
 
-Lemma dec_enc c s : wf c -> dec_byte c (enc_sextet c s) = Some s.
+Lemma dec_enc c s : wf_config c -> dec_byte c (enc_sextet c s) = Some s.
 Proof.
   intros [Hnd _]. unfold dec_byte, enc_sextet.
   rewrite bindex_of_nth
@@ -153,7 +199,7 @@ Proof.
   rewrite length_alphabet. apply sextet_to_nat_lt.
 Qed.
 
-Lemma enc_sextet_not_pad c s : wf c -> enc_sextet c s <> pad_char.
+Lemma enc_sextet_not_pad c s : wf_config c -> enc_sextet c s <> pad_char.
 Proof.
   intros [_ Hpad] Heq. apply Hpad. rewrite <- Heq. apply enc_sextet_In.
 Qed.
@@ -168,7 +214,7 @@ Proof.
   rewrite bindex_of_not_In by exact Hnin. reflexivity.
 Qed.
 
-Lemma dec_byte_pad c : wf c -> dec_byte c pad_char = None.
+Lemma dec_byte_pad c : wf_config c -> dec_byte c pad_char = None.
 Proof. intros [_ Hpad]. now apply dec_byte_not_In. Qed.
 
 Lemma dec_byte_Some_In c b s : dec_byte c b = Some s -> In b (alphabet c).

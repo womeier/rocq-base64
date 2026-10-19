@@ -1,11 +1,12 @@
--Q theories base64
+-Q theories Base64
 
 theories/Util.v
 theories/Sextet.v
 theories/Alphabet.v
 theories/Base64.v
-theories/MetaRocqString.v
-theories/PrimStrings.v
-theories/Equiv.v
-theories/Tests.v
+theories/ByteString.v
+theories/InstanceStdString.v
+theories/InstancePrimString.v
+theories/InstanceBytestring.v
 theories/All.v
+theories/Tests.v
