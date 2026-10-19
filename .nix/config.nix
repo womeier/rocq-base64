@@ -7,12 +7,15 @@
   default-bundle = "9.1";
   bundles."9.0" = {
     rocqPackages.rocq-core.override.version = "9.0";
+    push-branches = [ "main" ];
   };
   bundles."9.1" = {
     rocqPackages.rocq-core.override.version = "9.1";
+    push-branches = [ "main" ];
   };
   bundles."9.2" = {
     rocqPackages.rocq-core.override.version = "9.2";
+    push-branches = [ "main" ];
   };
 
 
