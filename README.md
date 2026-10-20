@@ -70,5 +70,5 @@ See the examples in [`theories/Tests.v`](theories/Tests.v).
 
 
 ## Ideas for improvement
-- Improve performance using `PrimInt63`-arithmetic to improve performance.
+- Improve performance using `PrimInt63`-arithmetic.
 - Implement a streaming interface.
