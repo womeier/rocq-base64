@@ -17,6 +17,7 @@ From Stdlib Require Import ZArith Lia.
 From Stdlib Require Import Numbers.Cyclic.Int63.Uint63.
 From Stdlib Require Strings.PrimString Strings.PrimStringAxioms Strings.PString.
 From Base64 Require Import Sextet Alphabet Base64.
+From Base64 Require Strings.
 Import ListNotations.
 
 Notation pstring := PrimString.string.
@@ -105,67 +106,29 @@ Proof.
   symmetry. apply PString.length_spec_Z.
 Qed.
 
-(** ** Encoding and decoding primitive strings *)
+(** ** The bounded string instance *)
 
-Definition encode_ps (c : config) (s : pstring) : pstring :=
-  pstring_of_bytes (encode c (bytes_of_pstring s)).
-
-Definition decode_ps (c : config) (s : pstring) : option pstring :=
-  option_map pstring_of_bytes (decode c (bytes_of_pstring s)).
-
-(** ** Pushing the conversions through *)
-
-Lemma encode_ps_eq c s :
-  encode_ps c s = pstring_of_bytes (encode c (bytes_of_pstring s)).
-Proof. reflexivity. Qed.
-
-Lemma decode_ps_eq c s :
-  decode_ps c s = option_map pstring_of_bytes (decode c (bytes_of_pstring s)).
-Proof. reflexivity. Qed.
-
-Lemma bytes_of_pstring_encode_ps c s :
-  (Z.of_nat (length (encode c (bytes_of_pstring s)))
-     <= Uint63.to_Z PrimString.max_length)%Z ->
-  bytes_of_pstring (encode_ps c s) = encode c (bytes_of_pstring s).
-Proof. intros Hlen. unfold encode_ps. now apply bytes_of_pstring_of_bytes. Qed.
-
-Lemma encode_ps_pstring_of_bytes c bs :
-  (Z.of_nat (length bs) <= Uint63.to_Z PrimString.max_length)%Z ->
-  encode_ps c (pstring_of_bytes bs) = pstring_of_bytes (encode c bs).
+#[export] Instance pstring_base64 : Strings.ByteString pstring.
 Proof.
-  intros Hlen. unfold encode_ps. now rewrite bytes_of_pstring_of_bytes.
-Qed.
+  refine {| Strings.to_bytes := bytes_of_pstring;
+            Strings.of_bytes := pstring_of_bytes;
+            Strings.fits bs :=
+              (Z.of_nat (length bs) <= Uint63.to_Z PrimString.max_length)%Z;
+            Strings.of_to_bytes := pstring_of_bytes_of_pstring;
+            Strings.to_of_bytes := bytes_of_pstring_of_bytes |}.
+  - intros s. rewrite length_bytes_of_pstring. apply PString.valid_length.
+  - intros xs ys Hlen Hfits. cbn in *. lia.
+Defined.
 
-Lemma decode_ps_pstring_of_bytes c bs :
-  (Z.of_nat (length bs) <= Uint63.to_Z PrimString.max_length)%Z ->
-  decode_ps c (pstring_of_bytes bs) = option_map pstring_of_bytes (decode c bs).
-Proof.
-  intros Hlen. unfold decode_ps. now rewrite bytes_of_pstring_of_bytes.
-Qed.
-
-(** ** The roundtrip theorems, transported *)
-
-Theorem decode_ps_encode_ps c s :
-  wf c ->
-  (Z.of_nat (length (encode c (bytes_of_pstring s)))
-     <= Uint63.to_Z PrimString.max_length)%Z ->
-  decode_ps c (encode_ps c s) = Some s.
-Proof.
-  intros Hwf Hlen. unfold decode_ps, encode_ps.
-  rewrite bytes_of_pstring_of_bytes by exact Hlen.
-  rewrite (decode_encode c _ Hwf). cbn.
-  f_equal. apply pstring_of_bytes_of_pstring.
-Qed.
-
-(** The side condition above mentions the encoded length, which a caller does
-    not have in hand. This version asks only about the input, using the fact
-    that encoding at most doubles a string's length (and adds at most four). *)
-Corollary decode_ps_encode_ps' c s :
-  wf c ->
+(** A sufficient capacity condition expressed using the native input length.
+    Use this to discharge [fits] in the shared correctness theorems. *)
+Lemma encode_fits c s :
   (2 * Uint63.to_Z (PrimString.length s) + 4 <= Uint63.to_Z PrimString.max_length)%Z ->
-  decode_ps c (encode_ps c s) = Some s.
+  Strings.fits (S := pstring) (encode c (bytes_of_pstring s)).
 Proof.
-  intros Hwf Hlen. apply decode_ps_encode_ps; [exact Hwf|].
+  intros Hlen. change
+    (Z.of_nat (length (encode c (bytes_of_pstring s)))
+       <= Uint63.to_Z PrimString.max_length)%Z.
   pose proof (encode_length_le c (bytes_of_pstring s)) as Hle.
   apply (Z.le_trans _ (Z.of_nat (2 * length (bytes_of_pstring s) + 4))); [lia|].
   rewrite Nat2Z.inj_add, Nat2Z.inj_mul, length_bytes_of_pstring.
@@ -174,57 +137,15 @@ Proof.
   lia.
 Qed.
 
-(** The other direction needs no side condition: the primitive string being
-    decoded already exists, so it is within [max_length], and decoding only
-    makes it shorter. *)
-Theorem encode_ps_decode_ps c s t :
-  wf c -> decode_ps c s = Some t -> encode_ps c t = s.
-Proof.
-  intros Hwf H. unfold decode_ps in H.
-  destruct (decode c (bytes_of_pstring s)) as [bs|] eqn:Hd; cbn in H; [|discriminate].
-  injection H as <-.
-  assert (Z.of_nat (length bs) <= Uint63.to_Z PrimString.max_length)%Z as Hlen.
-  { pose proof (decode_length_le c _ bs Hwf Hd) as Hle.
-    pose proof (PString.valid_length s) as Hv.
-    rewrite <- length_bytes_of_pstring in Hv. lia. }
-  rewrite encode_ps_pstring_of_bytes by exact Hlen.
-  rewrite (encode_decode c _ bs Hwf Hd).
-  apply pstring_of_bytes_of_pstring.
-Qed.
-
-Corollary encode_ps_inj c s t :
-  wf c ->
-  (2 * Uint63.to_Z (PrimString.length s) + 4 <= Uint63.to_Z PrimString.max_length)%Z ->
-  (2 * Uint63.to_Z (PrimString.length t) + 4 <= Uint63.to_Z PrimString.max_length)%Z ->
-  encode_ps c s = encode_ps c t -> s = t.
-Proof.
-  intros Hwf Hs Ht Heq.
-  assert (Some s = Some t) as H by
-    (rewrite <- (decode_ps_encode_ps' c s Hwf Hs),
-             <- (decode_ps_encode_ps' c t Hwf Ht), Heq; reflexivity).
-  now injection H as <-.
-Qed.
-
 (** ** Length *)
 
-Lemma length_encode_ps c s :
+Lemma encode_length c s :
   (Z.of_nat (length (encode c (bytes_of_pstring s)))
      <= Uint63.to_Z PrimString.max_length)%Z ->
-  Uint63.to_Z (PrimString.length (encode_ps c s))
+  Uint63.to_Z (PrimString.length (Strings.encode c s))
   = Z.of_nat (length (encode c (bytes_of_pstring s))).
 Proof.
-  intros Hlen. rewrite PString.length_spec_Z.
-  now rewrite <- bytes_of_pstring_encode_ps, length_bytes_of_pstring,
-              PString.length_spec_Z by exact Hlen.
+  intros Hlen. rewrite <- length_bytes_of_pstring.
+  exact (f_equal (fun bs => Z.of_nat (length bs))
+    (@Strings.to_bytes_encode pstring pstring_base64 c s Hlen)).
 Qed.
-
-(** ** Rewrite database *)
-
-(* As on the bytestring side, the two unfolding equations are what let the
-   database reach the core theory.  Note the asymmetry: [pstring_of_bytes
-   (bytes_of_pstring s) = s] is unconditional and so belongs here, while the
-   other direction needs a [max_length] bound and therefore cannot be a hint --
-   [autorewrite] will leave a [bytes_of_pstring (pstring_of_bytes _)] for the
-   caller to discharge with [bytes_of_pstring_of_bytes]. *)
-#[export] Hint Rewrite encode_ps_eq decode_ps_eq
-  pstring_of_bytes_of_pstring length_bytes_of_pstring : base64.

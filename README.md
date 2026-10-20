@@ -8,16 +8,10 @@
 [license-shield]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-link]: LICENSE
 
-Base64 encoding and **strict** decoding in Rocq, following [RFC 4648](https://www.rfc-editor.org/rfc/rfc4648),
-proved correct in both directions:
+Base64 encoding and **strict** decoding in Rocq, following [RFC 4648](https://www.rfc-editor.org/rfc/rfc4648).
 
-```coq
-Theorem decode_encode c bs : wf c -> decode c (encode c bs) = Some bs.
-Theorem encode_decode c l bs : wf c -> decode c l = Some bs -> encode c bs = l.
-```
-The core theory is over `list Byte.byte`.
-There are also bridges to MetaRocq's bytestrings, to the standard library's
-`String.string` and to Rocq's primitive strings.
+The lemmas are provided on a `ByteString` type class, with instances for `list byte`, the stdlib's `String`, MetaRocq's `bytestring`,
+and Rocq's `PrimString`.
 
 
 ## Install
@@ -38,17 +32,18 @@ Compute decode url (list_byte_of_string "Zm9vYg").
      (* = Some (list_byte_of_string "foob") *)
 
 (* MetaRocq bytestrings *)
-Compute encode_bs standard (BS.parse (list_byte_of_string "foobar")).
+Compute encode standard (BS.parse (list_byte_of_string "foobar")).
+Compute decode standard (BS.parse (list_byte_of_string "Zm9vYmFy")).
 
 (* stdlib strings *)
-Compute encode_str standard "foobar".   (* = "Zm9vYmFy"%string *)
-Compute decode_str url "Zm9vYg".        (* = Some "foob"%string *)
+Compute encode standard "foobar"%string.   (* = "Zm9vYmFy"%string *)
+Compute decode url "Zm9vYg"%string.        (* = Some "foob"%string *)
 
 (* primitive strings.  `All` only `Require`s `PrimString`, so that it does not
    shadow `String.string`; import it yourself to get the `"..."` literals. *)
 From Stdlib Require Import Strings.PrimString.
-Compute encode_ps standard "foobar".   (* = "Zm9vYmFy"%pstring *)
-Compute decode_ps url "Zm9vYg".        (* = Some "foob"%pstring *)
+Compute encode standard "foobar"%pstring.   (* = "Zm9vYmFy"%pstring *)
+Compute decode url "Zm9vYg"%pstring.        (* = Some "foob"%pstring *)
 ```
 
 There are three different variants of encoding a string in base64.
@@ -67,15 +62,14 @@ There are three different variants of encoding a string in base64.
 | `Sextet` | the 6-bit word, and the 3↔4 byte/sextet repacking with its six inverse lemmas |
 | `Alphabet` | `config`, `wf`, the shipped alphabets, `enc_sextet`/`dec_byte` |
 | `Base64` | `encode`, `decode`, both roundtrip theorems, `encode_length`, `encode_charset`, `encode_app` |
-| `MetaRocqString` | `encode_bs`/`decode_bs` over `MetaRocq.Utils.bytestring.String.t` |
-| `StdStrings` | `encode_str`/`decode_str` over stdlib `String.string` |
-| `PrimStrings` | `encode_ps`/`decode_ps` over `PrimString.string` |
-| `Equiv` | the conversions between those four, and the `base64` rewrite database |
+| `MetaRocqString` | bytestring instance, byte-conversion laws and native encoded-length lemma |
+| `StdStrings` | stdlib-string instance, byte-conversion laws and native encoded-length lemma |
+| `PrimStrings` | primitive-string instance, conversions, capacity and native length lemmas |
+| `Strings` | `ByteString`, byte conversions and `fits`, uniform `encode`/`decode`, and shared correctness proofs |
 
-`Equiv` exports the tactic `base64_simpl`, which takes a goal over
-bytestrings, stdlib strings or primitive strings down to one over `list byte`,
-where `decode_encode` and `encode_decode` apply. See the comment above it in
-`theories/Equiv.v`.
+`Strings.decode_encode`, `Strings.encode_decode`, `Strings.decode_encode_iff`,
+`Strings.encode_inj`, `Strings.encode_length`, and `Strings.encode_app` apply
+to every instance.
 
 
 ## Tests
