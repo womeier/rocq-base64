@@ -19,6 +19,17 @@ This library is currently in an experimental stage.
 The author uses the nix-based setup.
 
 
+## Variants
+
+There are three different variants of encoding a string in base64.
+
+| Config       | 62 | 63 | Padded | RFC 4648 |
+|--------------|----|----|--------|----------|
+| `standard`   | `+` | `/` | yes | §4, "base64" |
+| `url`        | `-` | `_` | no  | §5, "base64url" (JWT style) |
+| `url_padded` | `-` | `_` | yes | §5 with padding |
+
+
 ## Examples
 
 ```coq
@@ -46,32 +57,6 @@ Compute encode standard "foobar"%pstring.   (* = "Zm9vYmFy"%pstring *)
 Compute decode url "Zm9vYg"%pstring.        (* = Some "foob"%pstring *)
 ```
 
-There are three different variants of encoding a string in base64.
-
-| Config       | 62 | 63 | Padded | RFC 4648 |
-|--------------|----|----|--------|----------|
-| `standard`   | `+` | `/` | yes | §4, "base64" |
-| `url`        | `-` | `_` | no  | §5, "base64url" (JWT style) |
-| `url_padded` | `-` | `_` | yes | §5 with padding |
-
-
-## Modules
-
-| Module | Contents |
-|---|---|
-| `Sextet` | the 6-bit word, and the 3↔4 byte/sextet repacking with its six inverse lemmas |
-| `Alphabet` | `config`, `wf`, the shipped alphabets, `enc_sextet`/`dec_byte` |
-| `Base64` | `encode`, `decode`, both roundtrip theorems, `encode_length`, `encode_charset`, `encode_app` |
-| `MetaRocqString` | bytestring instance, byte-conversion laws and native encoded-length lemma |
-| `StdStrings` | stdlib-string instance, byte-conversion laws and native encoded-length lemma |
-| `PrimStrings` | primitive-string instance, conversions, capacity and native length lemmas |
-| `Strings` | `ByteString`, byte conversions and `fits`, uniform `encode`/`decode`, and shared correctness proofs |
-
-`Strings.decode_encode`, `Strings.encode_decode`, `Strings.decode_encode_iff`,
-`Strings.encode_inj`, `Strings.encode_length`, and `Strings.encode_app` apply
-to every instance.
-
-
 ## Tests
 The test suits ensures that this library behaves as [base64 Rust library](https://crates.io/crates/base64).
 ```sh
@@ -81,11 +66,7 @@ nix-build --argstr job base64-testsuite
 ## What "strict" means
 Other libraries are forgiving with slightly malformed inputs; the `decode` function of this library only accepts correct inputs.
 `decode` has no malleability in the sense of [eprint 2022/361](https://eprint.iacr.org/2022/361.pdf).
-
-Each case — bad length, a character outside the alphabet, padding before the
-final quad, too little data before the padding, non-zero trailing bits, missing
-or short padding, and padding under an unpadded config — is pinned down by an
-`Example` in [`theories/Tests.v`](theories/Tests.v), so `make` checks them.
+See the examples in [`theories/Tests.v`](theories/Tests.v).
 
 
 ## Ideas for improvement
