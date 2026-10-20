@@ -17,7 +17,7 @@ From Stdlib Require Import ZArith Lia.
 From Stdlib Require Import Numbers.Cyclic.Int63.Uint63.
 From Stdlib Require Strings.PrimString Strings.PrimStringAxioms Strings.PString.
 From Base64 Require Import Sextet Alphabet Base64.
-From Base64 Require Strings.
+From Base64 Require ByteString.
 Import ListNotations.
 
 Notation pstring := PrimString.string.
@@ -108,14 +108,14 @@ Qed.
 
 (** ** The bounded string instance *)
 
-#[export] Instance pstring_base64 : Strings.ByteString pstring.
+#[export] Instance pstring_bytestring : ByteString.ByteString pstring.
 Proof.
-  refine {| Strings.to_bytes := bytes_of_pstring;
-            Strings.of_bytes := pstring_of_bytes;
-            Strings.fits bs :=
+  refine {| ByteString.to_bytes := bytes_of_pstring;
+            ByteString.of_bytes := pstring_of_bytes;
+            ByteString.fits bs :=
               (Z.of_nat (length bs) <= Uint63.to_Z PrimString.max_length)%Z;
-            Strings.of_to_bytes := pstring_of_bytes_of_pstring;
-            Strings.to_of_bytes := bytes_of_pstring_of_bytes |}.
+            ByteString.of_to_bytes := pstring_of_bytes_of_pstring;
+            ByteString.to_of_bytes := bytes_of_pstring_of_bytes |}.
   - intros s. rewrite length_bytes_of_pstring. apply PString.valid_length.
   - intros xs ys Hlen Hfits. cbn in *. lia.
 Defined.
@@ -124,7 +124,7 @@ Defined.
     Use this to discharge [fits] in the shared correctness theorems. *)
 Lemma encode_fits c s :
   (2 * Uint63.to_Z (PrimString.length s) + 4 <= Uint63.to_Z PrimString.max_length)%Z ->
-  Strings.fits (S := pstring) (encode c (bytes_of_pstring s)).
+  ByteString.fits (S := pstring) (encode c (bytes_of_pstring s)).
 Proof.
   intros Hlen. change
     (Z.of_nat (length (encode c (bytes_of_pstring s)))
@@ -142,10 +142,10 @@ Qed.
 Lemma encode_length c s :
   (Z.of_nat (length (encode c (bytes_of_pstring s)))
      <= Uint63.to_Z PrimString.max_length)%Z ->
-  Uint63.to_Z (PrimString.length (Strings.encode c s))
+  Uint63.to_Z (PrimString.length (ByteString.encode c s))
   = Z.of_nat (length (encode c (bytes_of_pstring s))).
 Proof.
   intros Hlen. rewrite <- length_bytes_of_pstring.
   exact (f_equal (fun bs => Z.of_nat (length bs))
-    (@Strings.to_bytes_encode pstring pstring_base64 c s Hlen)).
+    (@ByteString.to_bytes_encode pstring pstring_bytestring c s Hlen)).
 Qed.

@@ -6,5 +6,5 @@
 
     The test vectors in [Base64.Tests] are deliberately not re-exported. *)
 
-From Base64 Require Export Util Sextet Alphabet Base64
-  MetaRocqString StdStrings PrimStrings Strings.
+From Base64 Require Export Util Sextet Alphabet Base64 ByteString
+  MetaRocqString StdString PrimString.

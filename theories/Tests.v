@@ -138,17 +138,17 @@ Definition roundtrip {S : Type} `{ByteString S} (c : config) (s : S) : option S 
 
 Example roundtrip_bytes c s : wf c -> roundtrip c s = Some (s : list byte).
 Proof.
-  intros Hwf. exact (@Strings.decode_encode (list byte) byte_list_base64 c s Hwf I).
+  intros Hwf. exact (@ByteString.decode_encode (list byte) byte_list_bytestring c s Hwf I).
 Qed.
 
 Example roundtrip_bs c s : wf c -> roundtrip c s = Some (s : BS.t).
 Proof.
-  intros Hwf. exact (@Strings.decode_encode BS.t bytestring_base64 c s Hwf I).
+  intros Hwf. exact (@ByteString.decode_encode BS.t metarocq_bytestring c s Hwf I).
 Qed.
 
 Example roundtrip_str c s : wf c -> roundtrip c s = Some (s : String.string).
 Proof.
-  intros Hwf. exact (@Strings.decode_encode String.string string_base64 c s Hwf I).
+  intros Hwf. exact (@ByteString.decode_encode String.string string_bytestring c s Hwf I).
 Qed.
 
 Example roundtrip_ps c (s : PrimString.string) :
@@ -156,23 +156,23 @@ Example roundtrip_ps c (s : PrimString.string) :
   (Z.of_nat (List.length (encode c (bytes_of_pstring s)))
      <= Uint63.to_Z PrimString.max_length)%Z ->
   roundtrip c s = Some s.
-Proof. exact (@Strings.decode_encode PrimString.string pstring_base64 c s). Qed.
+Proof. exact (@ByteString.decode_encode PrimString.string pstring_bytestring c s). Qed.
 
 Example roundtrip_ps_input_bound c (s : PrimString.string) :
   wf c ->
   (2 * Uint63.to_Z (PrimString.length s) + 4 <= Uint63.to_Z PrimString.max_length)%Z ->
   roundtrip c s = Some s.
 Proof.
-  intros Hwf Hlen. exact (Strings.decode_encode c s Hwf (PrimStrings.encode_fits c s Hlen)).
+  intros Hwf Hlen. exact (ByteString.decode_encode c s Hwf (PrimString.encode_fits c s Hlen)).
 Qed.
 
 Example roundtrip_generic {S : Type} `{ByteString S} c (s : S) :
   wf c -> fits (Base64.encode c (to_bytes s)) -> roundtrip c s = Some s.
-Proof. exact (Strings.decode_encode c s). Qed.
+Proof. exact (ByteString.decode_encode c s). Qed.
 
 Example successful_decode_generic {S : Type} `{ByteString S} c (s t : S) :
   wf c -> decode c s = Some t -> encode c t = s.
-Proof. exact (Strings.encode_decode c s t). Qed.
+Proof. exact (ByteString.encode_decode c s t). Qed.
 
 Example primitive_fits bs :
   fits (S := PrimString.string) bs <->
@@ -184,17 +184,17 @@ Proof. exact I. Qed.
 
 Example decoded_bytes_generic {S : Type} `{ByteString S} c (s : S) :
   wf c -> option_map to_bytes (decode c s) = Base64.decode c (to_bytes s).
-Proof. exact (Strings.to_bytes_decode c s). Qed.
+Proof. exact (ByteString.to_bytes_decode c s). Qed.
 
 Example append_generic {S : Type} `{ByteString S} c (s t : S) :
   List.length (to_bytes s) mod 3 = 0 ->
   fits (to_bytes s ++ to_bytes t) ->
   fits (Base64.encode c (to_bytes s)) ->
   fits (Base64.encode c (to_bytes t)) ->
-  encode c (Strings.append s t) = Strings.append (encode c s) (encode c t).
-Proof. exact (Strings.encode_app c s t). Qed.
+  encode c (ByteString.append s t) = ByteString.append (encode c s) (encode c t).
+Proof. exact (ByteString.encode_app c s t). Qed.
 
 Example append_ps_foobar :
-  encode standard (Strings.append "foo"%pstring "bar"%pstring) =
-  Strings.append (encode standard "foo"%pstring) (encode standard "bar"%pstring).
+  encode standard (ByteString.append "foo"%pstring "bar"%pstring) =
+  ByteString.append (encode standard "foo"%pstring) (encode standard "bar"%pstring).
 Proof. vm_compute. reflexivity. Qed.

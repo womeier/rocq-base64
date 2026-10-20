@@ -22,7 +22,7 @@ Arguments to_bytes {S} {_} s.
 Arguments of_bytes {S} {_} bs.
 Arguments fits {S} {_} bs.
 
-#[export] Instance byte_list_base64 : ByteString (list byte) := {
+#[export] Instance byte_list_bytestring : ByteString (list byte) := {
   to_bytes bs := bs;
   of_bytes bs := bs;
   fits _ := True;
@@ -32,7 +32,7 @@ Arguments fits {S} {_} bs.
   fits_shorter _ _ _ _ := I
 }.
 
-Section Strings.
+Section ByteString.
 Context {S : Type} `{ByteString S}.
 
 Definition encode (c : config) (s : S) : S :=
@@ -136,4 +136,4 @@ Proof.
   now rewrite Base64.encode_app.
 Qed.
 
-End Strings.
+End ByteString.

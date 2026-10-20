@@ -1,13 +1,13 @@
 (** * The standard library string instance
 
-    Base64 operations and their correctness proofs are provided by [Strings].
+    Base64 operations and their correctness proofs are provided by [ByteString].
     The standard library supplies mutually inverse byte conversions; this
     module adds their length and append laws and the resulting instance. *)
 
 From Stdlib Require Import Strings.Byte Strings.Ascii Strings.String.
 From Stdlib Require Import Lists.List Arith.PeanoNat.
 From Base64 Require Import Alphabet.
-From Base64 Require Strings.
+From Base64 Require ByteString.
 Import ListNotations.
 
 Lemma length_list_byte_of_string s :
@@ -30,18 +30,18 @@ Proof.
   cbv [string_of_list_byte]. induction l1 as [|b l1 IH]; cbn; congruence.
 Qed.
 
-#[export] Instance string_base64 : Strings.ByteString string := {
-  Strings.to_bytes := list_byte_of_string;
-  Strings.of_bytes := string_of_list_byte;
-  Strings.fits _ := True;
-  Strings.of_to_bytes := string_of_list_byte_of_string;
-  Strings.to_of_bytes bs _ := list_byte_of_string_of_list_byte bs;
-  Strings.fits_to_bytes _ := I;
-  Strings.fits_shorter _ _ _ _ := I
+#[export] Instance string_bytestring : ByteString.ByteString string := {
+  ByteString.to_bytes := list_byte_of_string;
+  ByteString.of_bytes := string_of_list_byte;
+  ByteString.fits _ := True;
+  ByteString.of_to_bytes := string_of_list_byte_of_string;
+  ByteString.to_of_bytes bs _ := list_byte_of_string_of_list_byte bs;
+  ByteString.fits_to_bytes _ := I;
+  ByteString.fits_shorter _ _ _ _ := I
 }.
 
 Theorem encode_length c (s : string) :
-  String.length (Strings.encode c s) =
+  String.length (ByteString.encode c s) =
   if pad c then 4 * ((String.length s + 2) / 3)
   else 4 * (String.length s / 3) + match String.length s mod 3 with
                                    | 0 => 0
@@ -50,5 +50,5 @@ Theorem encode_length c (s : string) :
                                    end.
 Proof.
   rewrite <- !length_list_byte_of_string.
-  exact (@Strings.encode_length string string_base64 c s I).
+  exact (@ByteString.encode_length string string_bytestring c s I).
 Qed.
