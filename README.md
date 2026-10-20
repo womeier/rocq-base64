@@ -16,7 +16,7 @@ and Rocq's `PrimString`.
 
 ## Install
 This library is currently in an experimental stage.
-The author uses the nix-based setup.
+The author uses the Nix-based setup.
 
 
 ## Variants
@@ -58,7 +58,7 @@ Compute decode url "Zm9vYg"%pstring.        (* = Some "foob"%pstring *)
 ```
 
 ## Tests
-The test suits ensures that this library behaves as the [base64 Rust library](https://crates.io/crates/base64).
+The test suite ensures that this library behaves like the [base64 Rust library](https://crates.io/crates/base64).
 ```sh
 nix-build --argstr job base64-testsuite
 ```
