@@ -58,7 +58,7 @@ Compute decode url "Zm9vYg"%pstring.        (* = Some "foob"%pstring *)
 ```
 
 ## Tests
-The test suits ensures that this library behaves as [base64 Rust library](https://crates.io/crates/base64).
+The test suits ensures that this library behaves as the [base64 Rust library](https://crates.io/crates/base64).
 ```sh
 nix-build --argstr job base64-testsuite
 ```
