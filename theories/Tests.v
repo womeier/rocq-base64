@@ -86,19 +86,6 @@ Example reject_missing_pad : decode standard (b "Zg") = None. Proof. reflexivity
 Example reject_short_pad   : decode standard (b "Zg=") = None. Proof. reflexivity. Qed.
 Example reject_url_padded  : decode url (b "Zg==")     = None. Proof. reflexivity. Qed.
 
-(** ** MetaRocq bytestrings *)
-
-Definition bs (x : String.string) : BS.t := BS.parse (list_byte_of_string x).
-
-Example encode_bs_foobar : encode standard (bs "foobar") = bs "Zm9vYmFy".
-Proof. reflexivity. Qed.
-Example encode_bs_foob : encode standard (bs "foob") = bs "Zm9vYg==".
-Proof. reflexivity. Qed.
-Example decode_bs_foob : decode standard (bs "Zm9vYg==") = Some (bs "foob").
-Proof. reflexivity. Qed.
-Example decode_bs_reject : decode standard (bs "QR==") = None.
-Proof. reflexivity. Qed.
-
 (** ** Standard library strings *)
 
 (* The uniform API has no representation-specific argument scope, so annotate
@@ -139,11 +126,6 @@ Definition roundtrip {S : Type} `{ByteString S} (c : config) (s : S) : option S 
 Example roundtrip_bytes c s : wf c -> roundtrip c s = Some (s : list byte).
 Proof.
   intros Hwf. exact (@ByteString.decode_encode (list byte) byte_list_bytestring c s Hwf I).
-Qed.
-
-Example roundtrip_bs c s : wf c -> roundtrip c s = Some (s : BS.t).
-Proof.
-  intros Hwf. exact (@ByteString.decode_encode BS.t metarocq_bytestring c s Hwf I).
 Qed.
 
 Example roundtrip_str c s : wf c -> roundtrip c s = Some (s : String.string).
@@ -198,3 +180,21 @@ Example append_ps_foobar :
   encode standard (ByteString.append "foo"%pstring "bar"%pstring) =
   ByteString.append (encode standard "foo"%pstring) (encode standard "bar"%pstring).
 Proof. vm_compute. reflexivity. Qed.
+
+(** ** The generic [append] agrees with each representation's own *)
+
+(** For byte lists the generic [append] is plain [++], and for standard library
+    strings it is [String.append]. This is what ties [encode_app] above to the
+    concatenation a caller already uses. *)
+(* [string_scope] is open above, so spell out that this [++] is the list one. *)
+Example append_bytes (s t : list byte) : ByteString.append s t = (s ++ t)%list.
+Proof. reflexivity. Qed.
+
+Example append_str (s t : String.string) :
+  ByteString.append s t = String.append s t.
+Proof. exact (append_string s t). Qed.
+
+Example append_str_foobar :
+  encode standard (ByteString.append "foo"%string "bar"%string) =
+  String.append (encode standard "foo"%string) (encode standard "bar"%string).
+Proof. reflexivity. Qed.

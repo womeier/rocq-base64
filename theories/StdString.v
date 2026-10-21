@@ -23,13 +23,6 @@ Proof.
   cbv [list_byte_of_string]. induction s as [|a s IH]; cbn; congruence.
 Qed.
 
-Lemma string_of_list_byte_app l1 l2 :
-  string_of_list_byte (l1 ++ l2)
-  = String.append (string_of_list_byte l1) (string_of_list_byte l2).
-Proof.
-  cbv [string_of_list_byte]. induction l1 as [|b l1 IH]; cbn; congruence.
-Qed.
-
 #[export] Instance string_bytestring : ByteString.ByteString string := {
   ByteString.to_bytes := list_byte_of_string;
   ByteString.of_bytes := string_of_list_byte;
@@ -40,7 +33,7 @@ Qed.
   ByteString.fits_shorter _ _ _ _ := I
 }.
 
-Theorem encode_length c (s : string) :
+Theorem string_encode_length c (s : string) :
   String.length (ByteString.encode c s) =
   if pad c then 4 * ((String.length s + 2) / 3)
   else 4 * (String.length s / 3) + match String.length s mod 3 with
@@ -51,4 +44,13 @@ Theorem encode_length c (s : string) :
 Proof.
   rewrite <- !length_list_byte_of_string.
   exact (@ByteString.encode_length string string_bytestring c s I).
+Qed.
+
+(** The generic [append] is the standard library's own concatenation. *)
+Lemma append_string (s t : string) : ByteString.append s t = String.append s t.
+Proof.
+  change (string_of_list_byte (list_byte_of_string s ++ list_byte_of_string t)
+          = String.append s t).
+  rewrite <- list_byte_of_string_append.
+  apply string_of_list_byte_of_string.
 Qed.

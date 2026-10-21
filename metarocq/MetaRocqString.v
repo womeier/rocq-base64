@@ -2,7 +2,11 @@
 
     Base64 operations and their correctness proofs are provided by [ByteString].
     This module supplies the byte conversions and relates the generic length
-    result to MetaRocq's native length. *)
+    result to MetaRocq's native length.
+
+    This bridge is kept out of the installed [rocq-base64] package so that
+    depending on it does not pull in MetaRocq; it is built and tested only in
+    CI, from this directory. See [metarocq/Tests.v]. *)
 
 From Stdlib Require Import Strings.Byte Lists.List Arith.PeanoNat.
 From MetaRocq.Utils Require bytestring.
@@ -36,7 +40,7 @@ Proof. induction s as [|b s IH]; cbn; congruence. Qed.
   ByteString.fits_shorter _ _ _ _ := I
 }.
 
-Theorem encode_length c (s : BS.t) :
+Theorem bytestring_encode_length c (s : BS.t) :
   BS.length (ByteString.encode c s) =
   if pad c then 4 * ((BS.length s + 2) / 3)
   else 4 * (BS.length s / 3) + match BS.length s mod 3 with
@@ -47,4 +51,11 @@ Theorem encode_length c (s : BS.t) :
 Proof.
   rewrite <- !print_length.
   exact (@ByteString.encode_length BS.t metarocq_bytestring c s I).
+Qed.
+
+(** The generic [append] matches MetaRocq's own bytestring concatenation. *)
+Lemma append_bytestring s t : ByteString.append s t = BS.append s t.
+Proof.
+  change (BS.parse (BS.print s ++ BS.print t) = BS.append s t).
+  rewrite <- print_append. apply parse_print.
 Qed.

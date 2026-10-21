@@ -10,8 +10,12 @@
 
 Base64 encoding and **strict** decoding in Rocq, following [RFC 4648](https://www.rfc-editor.org/rfc/rfc4648).
 
-The lemmas are provided on a `ByteString` type class, with instances for `list byte`, the stdlib's `String`, MetaRocq's `bytestring`,
+The lemmas are provided on a `ByteString` type class, with instances for `list byte`, the stdlib's `String`,
 and Rocq's `PrimString`.
+
+An instance for MetaRocq's `bytestring` lives in [`metarocq/`](metarocq/). It is **not** part of the
+installed package, so depending on `rocq-base64` does not pull in MetaRocq; it is built and tested
+separately (`make metarocq`, or the `base64-metarocq` CI job).
 
 
 ## Install
@@ -42,10 +46,6 @@ Compute encode standard (list_byte_of_string "any carnal pleasure").
 Compute decode url (list_byte_of_string "Zm9vYg").
      (* = Some (list_byte_of_string "foob") *)
 
-(* MetaRocq bytestrings *)
-Compute encode standard (BS.parse (list_byte_of_string "foobar")).
-Compute decode standard (BS.parse (list_byte_of_string "Zm9vYmFy")).
-
 (* stdlib strings *)
 Compute encode standard "foobar"%string.   (* = "Zm9vYmFy"%string *)
 Compute decode url "Zm9vYg"%string.        (* = Some "foob"%string *)
@@ -57,10 +57,30 @@ Compute encode standard "foobar"%pstring.   (* = "Zm9vYmFy"%pstring *)
 Compute decode url "Zm9vYg"%pstring.        (* = Some "foob"%pstring *)
 ```
 
+`All` exports the generic `ByteString` API, so the bare `encode`/`decode` above always mean the
+type-class versions. The core functions on `list byte` stay reachable as `Base64.encode` and
+`Base64.decode`.
+
+MetaRocq's bytestrings need the separate directory, which is not installed:
+
+```coq
+From Base64 Require Import All.
+From Base64Metarocq Require Import MetaRocqString.
+
+Compute encode standard (BS.parse (list_byte_of_string "foobar")).
+Compute decode standard (BS.parse (list_byte_of_string "Zm9vYmFy")).
+```
+
 ## Tests
 The test suite ensures that this library behaves like the [base64 Rust library](https://crates.io/crates/base64).
 ```sh
 nix-build --argstr job base64-testsuite
+```
+
+The MetaRocq bytestring instance is checked by its own job, since it is not part of the package:
+```sh
+nix-build --argstr job base64-metarocq                      # as CI runs it
+nix-shell --argstr job base64-metarocq --run "make metarocq"   # against the working tree
 ```
 
 ## What "strict" means

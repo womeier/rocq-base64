@@ -2,7 +2,6 @@
   lib,
   mkRocqDerivation,
   stdlib,
-  metarocq-utils,
   rocq-core,
   version ? null,
 }:
@@ -28,13 +27,9 @@ mkRocqDerivation {
 
   release."0.1.0".sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
-  propagatedBuildInputs = [
-    stdlib
-    metarocq-utils
-    # MetaRocq.Utils loads the Equations plugin, so findlib must assemble
-    # OCAMLPATH from the propagated plugin site-libs.
-    rocq-core.ocamlPackages.findlib
-  ];
+  # No MetaRocq here: the bytestring bridge is not installed with the library,
+  # so the package stays stdlib-only.  See `.nix/rocq-overlays/base64-metarocq`.
+  propagatedBuildInputs = [ stdlib ];
 
   releaseRev = v: "v${v}";
 

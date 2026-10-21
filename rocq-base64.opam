@@ -11,8 +11,10 @@ synopsis: "Verified RFC 4648 base64 encoding and decoding in Rocq"
 description: """
 Base64 encoding and decoding.
 Ships the RFC 4648 section 4 (standard) and section 5 (base64url) alphabets,
-together with bridges that lift the whole theory to MetaRocq's
-bytestrings, to the standard library's strings and to Rocq's primitive strings.
+together with a ByteString type class that lifts the whole theory to byte
+lists, to the standard library's strings and to Rocq's primitive strings.
+A bridge to MetaRocq's bytestrings ships in the repository's metarocq/
+directory; it is not installed, so this package does not depend on MetaRocq.
 """
 
 build: [make "-j%{jobs}%"]
@@ -20,7 +22,6 @@ install: [make "install"]
 depends: [
   "rocq-core" {>= "9.0" }
   "rocq-stdlib"
-  "rocq-metarocq-utils" {>= "1.4"}
 ]
 
 tags: [

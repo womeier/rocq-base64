@@ -17,12 +17,16 @@
   ##  - `metarocq`, because nixpkgs only knows releases up to 1.5.1-9.1 and
   ##    picks one by `coq.coq-version`; 9.2 needs the matching upstream tag.
   ## `coq` and `metarocq` are mentioned only to be pinned; they are built as
-  ## dependencies of `base64`, so they do not need CI jobs of their own.
+  ## dependencies of `base64-metarocq`, so they do not need CI jobs of their
+  ## own.  `base64` itself no longer depends on MetaRocq: the bytestring
+  ## bridge is not installed with the library, and the `base64-metarocq` job
+  ## is what keeps it building.
   bundles."9.0" = {
     rocqPackages.rocq-core.override.version = "9.0";
     rocqPackages.coq.override.version = "9.0";
     rocqPackages.coq.job = false;
     rocqPackages.base64-testsuite.job = true;
+    rocqPackages.base64-metarocq.job = true;
     push-branches = [ "main" ];
   };
   bundles."9.1" = {
@@ -32,6 +36,9 @@
     ## The differential test against the Rust `base64` crate; see
     ## `.nix/rocq-overlays/base64-testsuite`.
     rocqPackages.base64-testsuite.job = true;
+    ## The MetaRocq bytestring bridge; see
+    ## `.nix/rocq-overlays/base64-metarocq`.
+    rocqPackages.base64-metarocq.job = true;
     push-branches = [ "main" ];
   };
   bundles."9.2" = {
@@ -41,6 +48,7 @@
     rocqPackages.metarocq.override.version = "v1.5.1-9.2";
     rocqPackages.metarocq.job = false;
     rocqPackages.base64-testsuite.job = true;
+    rocqPackages.base64-metarocq.job = true;
     push-branches = [ "main" ];
   };
 

@@ -1,10 +1,10 @@
 (** * Base64 encoding and decoding over byte lists
 
     This is the core of the library: [encode] and [decode] on [list byte],
-    together with the two roundtrip theorems. The bridges to MetaRocq
-    bytestrings, to standard library strings and to primitive strings are all
-    derived from what is proved
-    here, so this is the only place the algorithm is reasoned about.
+    together with the two roundtrip theorems. Every [ByteString] instance --
+    standard library strings, primitive strings, and the MetaRocq bytestrings
+    in [metarocq/] -- is derived from what is proved here, so this is the only
+    place the algorithm is reasoned about.
 
     The decoder is deliberately strict. It rejects input whose length is not a
     valid base64 length, input containing characters outside the configured
@@ -333,7 +333,7 @@ Proof.
 Qed.
 
 (** A crude bound, but one a caller can actually discharge: it is what the
-    primitive-string bridge uses to meet the [max_length] side condition. *)
+    primitive-string instance uses to meet the [max_length] side condition. *)
 Corollary encode_length_le c bs : length (encode c bs) <= 2 * length bs + 4.
 Proof.
   rewrite encode_length.
@@ -386,7 +386,7 @@ Proof.
 Qed.
 
 (** The output is never shorter than the input, which is what lets the
-    primitive-string bridge bound a decoded length by its input length. *)
+    primitive-string instance bound a decoded length by its input length. *)
 Corollary encode_length_ge c bs : length bs <= length (encode c bs).
 Proof.
   rewrite encode_length.

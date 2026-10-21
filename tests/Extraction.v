@@ -4,6 +4,13 @@
     an independent implementation. This file is not part of the library build;
     see [tests/run.sh].
 
+    Only the core is extracted, deliberately. The algorithm is the part an
+    independent implementation can disagree with; the [ByteString] instances
+    on top of it are proved equal to the core in Rocq ([ByteString.encode] is
+    [of_bytes] after [Base64.encode] after [to_bytes], and for [list byte]
+    those conversions are the identity), so extracting them would re-test the
+    same bytes through a wrapper that carries its own proof.
+
     [nat] is left as unary Peano numbers. The library only ever uses it for
     values below 64 (sextet values and alphabet indices), so the cost is
     irrelevant here, and keeping the default extraction avoids relying on the

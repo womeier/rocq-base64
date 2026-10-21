@@ -16,9 +16,18 @@ Makefile.rocq: _RocqProject
 difftest:
 	@tests/run.sh
 
+# The MetaRocq bytestring instance.  It is deliberately not part of `all`: the
+# installed package must not depend on MetaRocq, so it lives in `metarocq/` and
+# is checked separately.  Needs metarocq-utils in ROCQPATH:
+# `nix-shell --argstr job base64-metarocq --run "make metarocq"` provides it.
+# CI runs the same check through that job (`nix-build --argstr job
+# base64-metarocq`), against the installed library.
+metarocq:
+	@metarocq/run.sh
+
 force _RocqProject Makefile: ;
 
 %: Makefile.rocq force
 	@+$(MAKE) -f Makefile.rocq $@
 
-.PHONY: all clean force difftest
+.PHONY: all clean force difftest metarocq

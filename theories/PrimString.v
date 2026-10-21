@@ -5,12 +5,12 @@
     [list char63], so base64 on primitive strings is the core development
     transported along a byte / [char63] conversion.
 
-    Unlike the bytestring and standard-string bridges, this one is not
-    unconditional: a primitive
-    string cannot be longer than [max_length], and encoding grows its input by
-    a third. So the statements that build a string carry a length side
-    condition, while those that only consume one do not -- a primitive string
-    that already exists is within bounds by [PString.valid_length]. *)
+    Unlike the byte-list and standard-string instances, this one is not
+    unconditional: a primitive string cannot be longer than [max_length], and
+    encoding grows its input by a third. So the statements that build a string
+    carry a length side condition, while those that only consume one do not --
+    a primitive string that already exists is within bounds by
+    [PString.valid_length]. *)
 
 From Stdlib Require Import Strings.Byte Lists.List.
 From Stdlib Require Import ZArith Lia.
@@ -108,17 +108,28 @@ Qed.
 
 (** ** The bounded string instance *)
 
-#[export] Instance pstring_bytestring : ByteString.ByteString pstring.
-Proof.
-  refine {| ByteString.to_bytes := bytes_of_pstring;
-            ByteString.of_bytes := pstring_of_bytes;
-            ByteString.fits bs :=
-              (Z.of_nat (length bs) <= Uint63.to_Z PrimString.max_length)%Z;
-            ByteString.of_to_bytes := pstring_of_bytes_of_pstring;
-            ByteString.to_of_bytes := bytes_of_pstring_of_bytes |}.
-  - intros s. rewrite length_bytes_of_pstring. apply PString.valid_length.
-  - intros xs ys Hlen Hfits. cbn in *. lia.
-Defined.
+(** A primitive string that already exists is within bounds, so its bytes
+    always fit. *)
+Lemma pstring_fits_to_bytes (s : pstring) :
+  (Z.of_nat (length (bytes_of_pstring s)) <= Uint63.to_Z PrimString.max_length)%Z.
+Proof. rewrite length_bytes_of_pstring. apply PString.valid_length. Qed.
+
+Lemma pstring_fits_shorter (xs ys : list byte) :
+  length xs <= length ys ->
+  (Z.of_nat (length ys) <= Uint63.to_Z PrimString.max_length)%Z ->
+  (Z.of_nat (length xs) <= Uint63.to_Z PrimString.max_length)%Z.
+Proof. lia. Qed.
+
+#[export] Instance pstring_bytestring : ByteString.ByteString pstring := {
+  ByteString.to_bytes := bytes_of_pstring;
+  ByteString.of_bytes := pstring_of_bytes;
+  ByteString.fits bs :=
+    (Z.of_nat (length bs) <= Uint63.to_Z PrimString.max_length)%Z;
+  ByteString.of_to_bytes := pstring_of_bytes_of_pstring;
+  ByteString.to_of_bytes := bytes_of_pstring_of_bytes;
+  ByteString.fits_to_bytes := pstring_fits_to_bytes;
+  ByteString.fits_shorter := pstring_fits_shorter
+}.
 
 (** A sufficient capacity condition expressed using the native input length.
     Use this to discharge [fits] in the shared correctness theorems. *)
@@ -139,13 +150,17 @@ Qed.
 
 (** ** Length *)
 
-Lemma encode_length c s :
-  (Z.of_nat (length (encode c (bytes_of_pstring s)))
-     <= Uint63.to_Z PrimString.max_length)%Z ->
+(** The side condition is the same capacity bound on the *input* that
+    [encode_fits] takes, rather than one on the encoded output: a caller knows
+    the length of the string it holds, not of the string it is about to
+    build. *)
+Lemma pstring_encode_length c s :
+  (2 * Uint63.to_Z (PrimString.length s) + 4 <= Uint63.to_Z PrimString.max_length)%Z ->
   Uint63.to_Z (PrimString.length (ByteString.encode c s))
   = Z.of_nat (length (encode c (bytes_of_pstring s))).
 Proof.
   intros Hlen. rewrite <- length_bytes_of_pstring.
   exact (f_equal (fun bs => Z.of_nat (length bs))
-    (@ByteString.to_bytes_encode pstring pstring_bytestring c s Hlen)).
+    (@ByteString.to_bytes_encode pstring pstring_bytestring c s
+       (encode_fits c s Hlen))).
 Qed.
