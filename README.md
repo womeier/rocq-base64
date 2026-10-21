@@ -25,13 +25,26 @@ The author uses the Nix-based setup.
 
 ## Variants
 
-There are three different variants of encoding a string in base64.
+A variant is an alphabet (which characters encode 62 and 63) crossed with whether the output is
+padded. RFC 4648 names two alphabets — `base64` (§4) and `base64url` (§5) — and those names cover
+the alphabet only; §3.2 settles padding separately, requiring it unless the spec referring to the
+RFC says otherwise. All four combinations ship:
 
-| Config       | 62 | 63 | Padded | RFC 4648 |
-|--------------|----|----|--------|----------|
-| `standard`   | `+` | `/` | yes | §4, "base64" |
-| `url`        | `-` | `_` | no  | §5, "base64url" (JWT style) |
-| `url_padded` | `-` | `_` | yes | §5 with padding |
+| Config            | 62 | 63 | Padded | RFC 4648 |
+|-------------------|----|----|--------|----------|
+| `standard`        | `+` | `/` | yes | "base64", §4 |
+| `url`             | `-` | `_` | no  | "base64url", §5 unpadded per §3.2 (JWT style) |
+| `url_padded`      | `-` | `_` | yes | "base64url", §5 at §3.2's default |
+| `standard_no_pad` | `+` | `/` | no  | "base64", §4 unpadded per §3.2 |
+
+All four are conformant, and none has an RFC name of its own — `standard` and `standard_no_pad`
+are both "base64", `url` and `url_padded` are both "base64url". They differ only in how much the
+RFC says about them: §5 expects the unpadded case ("this can be avoided by skipping the padding;
+see section 3.2"), while §4 never mentions dropping the padding, so `standard_no_pad` is the
+corner resting on the §3.2 escape clause alone.
+
+Any other alphabet works too: `config` is a plain record, and every theorem is proved for any
+configuration satisfying `wf` (64 distinct characters, none of them `=`).
 
 
 ## Examples

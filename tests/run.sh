@@ -78,12 +78,15 @@ say "comparing"
 if diff -q "$work/rocq.out" "$work/rust.out" >/dev/null; then
   echo "   OK: $(wc -l < "$work/rocq.out") results agree"
 else
-  echo "   MISMATCH -- first 40 differing cases (input, rocq, rust):"
+  # Collect the differing cases once, into a file.  Piping straight into
+  # `head` would SIGPIPE the pipeline, and under `set -o pipefail` with `set
+  # -e` that aborted the script here -- losing the count below and exiting 141
+  # instead of 1.
   paste -d'\t' "$work/corpus" "$work/rocq.out" "$work/rust.out" \
-    | awk -F'\t' '$2 != $3 { print }' | head -40
-  n=$(paste -d'\t' "$work/corpus" "$work/rocq.out" "$work/rust.out" \
-        | awk -F'\t' '$2 != $3' | wc -l)
-  echo "   $n of $(wc -l < "$work/corpus") cases disagree"
+    | awk -F'\t' '$2 != $3' > "$work/diffs"
+  echo "   MISMATCH -- first 40 differing cases (input, rocq, rust):"
+  head -40 "$work/diffs"
+  echo "   $(wc -l < "$work/diffs") of $(wc -l < "$work/corpus") cases disagree"
   cp "$work/corpus" "$work/rocq.out" "$work/rust.out" /tmp/ 2>/dev/null || true
   exit 1
 fi

@@ -58,6 +58,33 @@ Example encode_url_foo    : encode url (b "foo")    = b "Zm9v".     Proof. refle
 Example encode_url_foob   : encode url (b "foob")   = b "Zm9vYg".   Proof. reflexivity. Qed.
 Example decode_url_foob   : decode url (b "Zm9vYg") = Some (b "foob"). Proof. reflexivity. Qed.
 
+(** ** The standard alphabet, unpadded
+
+    The fourth configuration: section 4's characters with the padding dropped.
+    It agrees with [standard] exactly on the inputs whose length is a multiple
+    of three, where no padding would be emitted anyway. *)
+
+Example encode_snp_f      : encode standard_no_pad (b "f")      = b "Zg".
+Proof. reflexivity. Qed.
+Example encode_snp_fo     : encode standard_no_pad (b "fo")     = b "Zm8".
+Proof. reflexivity. Qed.
+Example encode_snp_foo    : encode standard_no_pad (b "foo")    = b "Zm9v".
+Proof. reflexivity. Qed.
+Example decode_snp_f      : decode standard_no_pad (b "Zg")     = Some (b "f").
+Proof. reflexivity. Qed.
+
+(** It keeps [+] and [/], which is what distinguishes it from [url]. *)
+Example encode_snp_high :
+  encode standard_no_pad [Byte.xfb; Byte.xff; Byte.xbf] = b "+/+/".
+Proof. reflexivity. Qed.
+
+(** Being unpadded, it rejects the padding [standard] requires -- and vice
+    versa. These two are the only reason the config exists. *)
+Example reject_snp_padded : decode standard_no_pad (b "Zg==") = None.
+Proof. reflexivity. Qed.
+Example reject_standard_unpadded : decode standard (b "Zg") = None.
+Proof. reflexivity. Qed.
+
 (** ** What the strict decoder rejects *)
 
 (** A length of one modulo four is never valid. *)

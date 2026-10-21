@@ -16,10 +16,24 @@
 //!
 //!   * `decode_allow_trailing_bits` defaults to false, so non-canonical final
 //!     symbols (`"QR=="`) are rejected -- `DecodeError::InvalidLastSymbol`;
-//!   * `STANDARD` decodes with `DecodePaddingMode::RequireCanonical`;
-//!   * `URL_SAFE_NO_PAD` decodes with `DecodePaddingMode::RequireNone`.
+//!   * `PAD` (the default) encodes padding and decodes with
+//!     `DecodePaddingMode::RequireCanonical`;
+//!   * `NO_PAD` emits none and decodes with `DecodePaddingMode::RequireNone`.
 //!
-//! That is precisely the contract of `standard` and `url` in `theories/Alphabet.v`.
+//! That is precisely the contract of `pad : bool` in `theories/Alphabet.v`, so
+//! the crate's four `general_purpose` engines line up exactly with the 2x2 of
+//! alphabet against padding that `Alphabet.config` can express:
+//!
+//! | `config`           | engine            |
+//! |--------------------|-------------------|
+//! | `standard`         | `STANDARD`        |
+//! | `url`              | `URL_SAFE_NO_PAD` |
+//! | `url_padded`       | `URL_SAFE`        |
+//! | `standard_no_pad`  | `STANDARD_NO_PAD` |
+//!
+//! The last row is the only case that exercises `pad = false` against `+`/`/`
+//! rather than `-`/`_`, which is what keeps the alphabet and padding axes
+//! from being confounded.
 //! Python's `base64.b64decode(..., validate=True)`, by contrast, accepts
 //! `"QR=="`, so it would report false mismatches against our decoder.
 //!
@@ -36,7 +50,7 @@
 //! the upstream assertions: it compares behaviour on every case rather than
 //! against a hard-coded expectation.
 
-use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
+use base64::engine::general_purpose::{STANDARD, STANDARD_NO_PAD, URL_SAFE, URL_SAFE_NO_PAD};
 use base64::Engine;
 use std::io::{self, BufRead, BufWriter, Write};
 
@@ -87,17 +101,20 @@ fn respond() {
                 let bs = hex_decode(arg);
                 writeln!(
                     out,
-                    "{} {}",
+                    "{} {} {} {}",
                     dot(STANDARD.encode(&bs)),
-                    dot(URL_SAFE_NO_PAD.encode(&bs))
+                    dot(URL_SAFE_NO_PAD.encode(&bs)),
+                    dot(URL_SAFE.encode(&bs)),
+                    dot(STANDARD_NO_PAD.encode(&bs))
                 )
                 .unwrap();
             }
-            b'S' | b'U' => {
-                let r = if tag == b'S' {
-                    STANDARD.decode(arg)
-                } else {
-                    URL_SAFE_NO_PAD.decode(arg)
+            b'S' | b'U' | b'P' | b'N' => {
+                let r = match tag {
+                    b'S' => STANDARD.decode(arg),
+                    b'U' => URL_SAFE_NO_PAD.decode(arg),
+                    b'P' => URL_SAFE.decode(arg),
+                    _ => STANDARD_NO_PAD.decode(arg),
                 };
                 match r {
                     Ok(bs) => writeln!(out, "{}", dot(hex_encode(&bs))).unwrap(),
@@ -117,28 +134,31 @@ struct Corpus<W: Write> {
 }
 
 impl<W: Write> Corpus<W> {
-    /// Encode these bytes under both configs.
+    /// Encode these bytes under all four configs.
     fn enc(&mut self, bs: &[u8]) {
         writeln!(self.out, "E {}", dot(hex_encode(bs))).unwrap();
         self.n += 1;
     }
 
-    /// Decode this text under both configs.  Lines that the protocol cannot
-    /// carry are skipped rather than silently mangled.
+    /// Decode this text under all four configs.  Lines that the protocol
+    /// cannot carry are skipped rather than silently mangled.
     fn dec(&mut self, s: &str) {
         if s.bytes().any(|b| b < 0x21 || b > 0x7e) {
             return;
         }
-        writeln!(self.out, "S {}", dot(s.to_string())).unwrap();
-        writeln!(self.out, "U {}", dot(s.to_string())).unwrap();
-        self.n += 2;
+        for tag in ["S", "U", "P", "N"] {
+            writeln!(self.out, "{} {}", tag, dot(s.to_string())).unwrap();
+        }
+        self.n += 4;
     }
 
-    /// A byte string, plus the decode of each of its two encodings.
+    /// A byte string, plus the decode of each of its four encodings.
     fn roundtrip(&mut self, bs: &[u8]) {
         self.enc(bs);
         self.dec(&STANDARD.encode(bs));
         self.dec(&URL_SAFE_NO_PAD.encode(bs));
+        self.dec(&URL_SAFE.encode(bs));
+        self.dec(&STANDARD_NO_PAD.encode(bs));
     }
 }
 

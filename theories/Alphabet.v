@@ -5,10 +5,24 @@
     to a multiple of four characters. Both are captured by [config] here, so
     the entire development below is proved once and applies to every variant.
 
-    The two variants the RFC names are provided as [standard] (section 4) and
-    [url] (section 5). The latter is unpadded, matching how base64url is
-    normally used in URLs and JWTs; [url_padded] is there for the rarer padded
-    reading of section 5. *)
+    The RFC names exactly two: "base64", the section 4 alphabet with [+] and
+    [/], and "base64url", the section 5 alphabet with [-] and [_]. Those names
+    denote the alphabets. Whether to pad is a separate question, settled for
+    both by section 3.2, which requires padding unless the specification
+    referring to the RFC explicitly says otherwise.
+
+    So the four configurations below are the two named alphabets crossed with
+    that padding bit, and all four are conformant. None of them has an RFC
+    name of its own: [standard] and [standard_no_pad] are both "base64",
+    [url] and [url_padded] are both "base64url".
+
+    What does differ is how much the RFC says about each. Section 5 expects
+    the unpadded case -- it observes that [=] must be percent-encoded in a
+    URI and that "this can be avoided by skipping the padding", pointing at
+    section 3.2 -- and JWS then requires it (RFC 7515 section 2). Section 4,
+    by contrast, never mentions dropping the padding, and section 3.2 notes
+    that the base64 alphabet *does* use it. [standard_no_pad] is therefore
+    the one corner resting on the escape clause alone. *)
 
 From Stdlib Require Import Strings.Byte Strings.String Lists.List.
 From Stdlib Require Import Arith.PeanoNat Lia.
@@ -56,6 +70,15 @@ Definition pad_char : byte := "="%byte.
 Definition standard   : config := {| char62 := "+"; char63 := "/"; pad := true  |}.
 Definition url        : config := {| char62 := "-"; char63 := "_"; pad := false |}.
 Definition url_padded : config := {| char62 := "-"; char63 := "_"; pad := true  |}.
+
+(** "base64" with the padding skipped under section 3.2. Section 4 never
+    mentions doing so -- unlike section 5, which does -- so of the four this
+    is the corner the RFC says least about, though it remains conformant when
+    a referring specification calls for it. Shipped because the combination
+    does turn up in practice, and because leaving one corner of a square
+    [config] already expresses without a name is the odd choice. *)
+Definition standard_no_pad : config :=
+  {| char62 := "+"; char63 := "/"; pad := false |}.
 
 (** ** Well-formed configurations
 
@@ -106,6 +129,9 @@ Lemma url_wf : wf url.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
 Lemma url_padded_wf : wf url_padded.
+Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
+
+Lemma standard_no_pad_wf : wf standard_no_pad.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
 (** ** Sextets and alphabet characters

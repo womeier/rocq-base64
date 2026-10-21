@@ -30,5 +30,5 @@ Set Extraction Output Directory "tests/extracted".
 
 Separate Extraction
   encode decode
-  standard url url_padded
+  standard url url_padded standard_no_pad
   byte_to_nat byte_of_nat.
