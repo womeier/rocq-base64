@@ -28,7 +28,9 @@ Definition byte_of_nat := Byte.of_nat.
 Extraction Language OCaml.
 Set Extraction Output Directory "tests/extracted".
 
+(* [standard] and [url] are abbreviations for two of these, so it is the
+   explicit names that get extracted. *)
 Separate Extraction
   encode decode
-  standard url url_padded standard_no_pad
+  standard_padded standard_unpadded url_padded url_unpadded
   byte_to_nat byte_of_nat.

@@ -13,15 +13,15 @@
 
     So the four configurations below are the two named alphabets crossed with
     that padding bit, and all four are conformant. None of them has an RFC
-    name of its own: [standard] and [standard_no_pad] are both "base64",
-    [url] and [url_padded] are both "base64url".
+    name of its own: [standard_padded] and [standard_unpadded] are both
+    "base64", [url_padded] and [url_unpadded] are both "base64url".
 
     What does differ is how much the RFC says about each. Section 5 expects
     the unpadded case -- it observes that [=] must be percent-encoded in a
     URI and that "this can be avoided by skipping the padding", pointing at
     section 3.2 -- and JWS then requires it (RFC 7515 section 2). Section 4,
     by contrast, never mentions dropping the padding, and section 3.2 notes
-    that the base64 alphabet *does* use it. [standard_no_pad] is therefore
+    that the base64 alphabet *does* use it. [standard_unpadded] is therefore
     the one corner resting on the escape clause alone. *)
 
 From Stdlib Require Import Strings.Byte Strings.String Lists.List.
@@ -67,9 +67,15 @@ Definition alphabet (c : config) : list byte :=
 
 Definition pad_char : byte := "="%byte.
 
-Definition standard   : config := {| char62 := "+"; char63 := "/"; pad := true  |}.
-Definition url        : config := {| char62 := "-"; char63 := "_"; pad := false |}.
-Definition url_padded : config := {| char62 := "-"; char63 := "_"; pad := true  |}.
+(** The four configurations, named so that each states its own padding. The
+    alternative -- letting a bare alphabet name carry an implicit padding and
+    marking only the deviation -- reads well one name at a time but cannot be
+    made consistent, because the two alphabets differ in what their usual
+    padding is. *)
+
+Definition standard_padded   : config := {| char62 := "+"; char63 := "/"; pad := true  |}.
+Definition url_padded        : config := {| char62 := "-"; char63 := "_"; pad := true  |}.
+Definition url_unpadded      : config := {| char62 := "-"; char63 := "_"; pad := false |}.
 
 (** "base64" with the padding skipped under section 3.2. Section 4 never
     mentions doing so -- unlike section 5, which does -- so of the four this
@@ -77,8 +83,19 @@ Definition url_padded : config := {| char62 := "-"; char63 := "_"; pad := true  
     a referring specification calls for it. Shipped because the combination
     does turn up in practice, and because leaving one corner of a square
     [config] already expresses without a name is the odd choice. *)
-Definition standard_no_pad : config :=
-  {| char62 := "+"; char63 := "/"; pad := false |}.
+Definition standard_unpadded : config := {| char62 := "+"; char63 := "/"; pad := false |}.
+
+(** The two readings in common use, kept short: "base64" is padded and
+    "base64url" is not, which is what the RFC and practice expect of each.
+    These are abbreviations, not separate configurations, so everything proved
+    about the explicit names applies to them directly.
+
+    Beware when porting code: the Rust [base64] crate spells its four the
+    other way round, with a bare name always meaning padded. Its [URL_SAFE] is
+    [url_padded] here, and its [URL_SAFE_NO_PAD] is [url] -- so [url] and
+    [URL_SAFE] look alike and differ. *)
+Notation standard := standard_padded.
+Notation url := url_unpadded.
 
 (** ** Well-formed configurations
 
@@ -122,16 +139,16 @@ Proof.
   now apply Byte.byte_dec_lb.
 Qed.
 
-Lemma standard_wf : wf standard.
-Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
-
-Lemma url_wf : wf url.
+Lemma standard_padded_wf : wf standard_padded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
 Lemma url_padded_wf : wf url_padded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
-Lemma standard_no_pad_wf : wf standard_no_pad.
+Lemma url_unpadded_wf : wf url_unpadded.
+Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
+
+Lemma standard_unpadded_wf : wf standard_unpadded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
 (** ** Sextets and alphabet characters

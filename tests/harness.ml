@@ -3,15 +3,15 @@
    Reads commands on stdin, one per line, and writes exactly one result line
    each.  "." stands for the empty string, both in arguments and in results.
 
-     E <hex>    encode; prints "<standard> <url> <url_padded> <standard_no_pad>"
-     S <text>   decode with [standard];        prints "<hex>" or "ERR"
-     U <text>   decode with [url];             prints "<hex>" or "ERR"
-     P <text>   decode with [url_padded];      prints "<hex>" or "ERR"
-     N <text>   decode with [standard_no_pad]; prints "<hex>" or "ERR"
+     E <hex>    encode; prints "<standard_padded> <url_unpadded> <url_padded> <standard_unpadded>"
+     S <text>   decode with [standard_padded];   prints "<hex>" or "ERR"
+     U <text>   decode with [url_unpadded];     prints "<hex>" or "ERR"
+     P <text>   decode with [url_padded];       prints "<hex>" or "ERR"
+     N <text>   decode with [standard_unpadded]; prints "<hex>" or "ERR"
 
    The four tags are the 2x2 of alphabet against padding, which is everything
    [Alphabet.config] can express and exactly the four configs it ships.
-   [standard_no_pad] is the only one that tests [pad = false] against "+"/"/"
+   [standard_unpadded] is the only one that tests [pad = false] against "+"/"/"
    rather than "-"/"_", so it decorrelates the two axes.
 
    tests/reference/src/main.rs speaks the same protocol, so the two outputs
@@ -61,21 +61,21 @@ let () =
          match tag with
          | 'E' ->
            let bs = to_bytes (hex_decode arg) in
-           Buffer.add_string buf (dot (of_bytes (Base64.encode Alphabet.standard bs)));
+           Buffer.add_string buf (dot (of_bytes (Base64.encode Alphabet.standard_padded bs)));
            Buffer.add_char buf ' ';
-           Buffer.add_string buf (dot (of_bytes (Base64.encode Alphabet.url bs)));
+           Buffer.add_string buf (dot (of_bytes (Base64.encode Alphabet.url_unpadded bs)));
            Buffer.add_char buf ' ';
            Buffer.add_string buf (dot (of_bytes (Base64.encode Alphabet.url_padded bs)));
            Buffer.add_char buf ' ';
-           Buffer.add_string buf (dot (of_bytes (Base64.encode Alphabet.standard_no_pad bs)));
+           Buffer.add_string buf (dot (of_bytes (Base64.encode Alphabet.standard_unpadded bs)));
            Buffer.add_char buf '\n'
          | 'S' | 'U' | 'P' | 'N' ->
            let cfg =
              match tag with
-             | 'S' -> Alphabet.standard
-             | 'U' -> Alphabet.url
+             | 'S' -> Alphabet.standard_padded
+             | 'U' -> Alphabet.url_unpadded
              | 'P' -> Alphabet.url_padded
-             | _ -> Alphabet.standard_no_pad
+             | _ -> Alphabet.standard_unpadded
            in
            (match Base64.decode cfg (to_bytes arg) with
             | Some bs -> Buffer.add_string buf (dot (hex_encode (of_bytes bs)))

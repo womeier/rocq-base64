@@ -14,37 +14,31 @@ The lemmas are provided on a `ByteString` type class, with instances for `list b
 and Rocq's `PrimString`.
 
 An instance for MetaRocq's `bytestring` lives in [`metarocq/`](metarocq/). It is **not** part of the
-installed package, so depending on `rocq-base64` does not pull in MetaRocq; it is built and tested
-separately (`make metarocq`, or the `base64-metarocq` CI job).
+installed package, so `rocq-base64` does not depend on MetaRocq.
 
 
 ## Install
-This library is currently in an experimental stage.
-The author uses the Nix-based setup.
 
+```sh
+# once, if you do not have Rocq from opam already
+opam repo add rocq-released https://rocq-prover.org/opam/released
+opam pin add rocq-base64 git+https://github.com/womeier/rocq-base64.git
+```
 
 ## Variants
 
-A variant is an alphabet (which characters encode 62 and 63) crossed with whether the output is
-padded. RFC 4648 names two alphabets — `base64` (§4) and `base64url` (§5) — and those names cover
-the alphabet only; §3.2 settles padding separately, requiring it unless the spec referring to the
-RFC says otherwise. All four combinations ship:
+A variant is determined by which characters encode 62 and 63, and whether the output is padded.
+RFC 4648 names two alphabets: `base64` (§4) and `base64url` (§5); §3.2 settles padding.
+All four combinations ship:
 
-| Config            | 62 | 63 | Padded | RFC 4648 |
-|-------------------|----|----|--------|----------|
-| `standard`        | `+` | `/` | yes | "base64", §4 |
-| `url`             | `-` | `_` | no  | "base64url", §5 unpadded per §3.2 (JWT style) |
-| `url_padded`      | `-` | `_` | yes | "base64url", §5 at §3.2's default |
-| `standard_no_pad` | `+` | `/` | no  | "base64", §4 unpadded per §3.2 |
+| Config              | 62 | 63 | Padded | Short name | RFC 4648 | Rust `base64` |
+|---------------------|----|----|--------|------------|----------|---------------|
+| `standard_padded`   | `+` | `/` | yes | `standard` | "base64", §4 | `STANDARD` |
+| `standard_unpadded` | `+` | `/` | no  | — | "base64", §4 unpadded per §3.2 | `STANDARD_NO_PAD` |
+| `url_padded`        | `-` | `_` | yes | — | "base64url", §5 at §3.2's default | `URL_SAFE` |
+| `url_unpadded`      | `-` | `_` | no  | `url` | "base64url", §5 unpadded per §3.2 (JWT style) | `URL_SAFE_NO_PAD` |
 
-All four are conformant, and none has an RFC name of its own — `standard` and `standard_no_pad`
-are both "base64", `url` and `url_padded` are both "base64url". They differ only in how much the
-RFC says about them: §5 expects the unpadded case ("this can be avoided by skipping the padding;
-see section 3.2"), while §4 never mentions dropping the padding, so `standard_no_pad` is the
-corner resting on the §3.2 escape clause alone.
-
-Any other alphabet works too: `config` is a plain record, and every theorem is proved for any
-configuration satisfying `wf` (64 distinct characters, none of them `=`).
+The short names are additional Rocq notations, as they are the most commonly used ones.
 
 
 ## Examples
@@ -88,12 +82,9 @@ Compute decode standard (BS.parse (list_byte_of_string "Zm9vYmFy")).
 The test suite ensures that this library behaves like the [base64 Rust library](https://crates.io/crates/base64).
 ```sh
 nix-build --argstr job base64-testsuite
-```
 
-The MetaRocq bytestring instance is checked by its own job, since it is not part of the package:
-```sh
-nix-build --argstr job base64-metarocq                      # as CI runs it
-nix-shell --argstr job base64-metarocq --run "make metarocq"   # against the working tree
+# extra job for running the metarocq one
+nix-build --argstr job base64-metarocq
 ```
 
 ## What "strict" means

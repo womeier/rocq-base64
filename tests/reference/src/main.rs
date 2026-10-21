@@ -24,16 +24,22 @@
 //! the crate's four `general_purpose` engines line up exactly with the 2x2 of
 //! alphabet against padding that `Alphabet.config` can express:
 //!
-//! | `config`           | engine            |
-//! |--------------------|-------------------|
-//! | `standard`         | `STANDARD`        |
-//! | `url`              | `URL_SAFE_NO_PAD` |
-//! | `url_padded`       | `URL_SAFE`        |
-//! | `standard_no_pad`  | `STANDARD_NO_PAD` |
+//! | `config`            | engine            |
+//! |---------------------|-------------------|
+//! | `standard_padded`   | `STANDARD`        |
+//! | `standard_unpadded` | `STANDARD_NO_PAD` |
+//! | `url_padded`        | `URL_SAFE`        |
+//! | `url_unpadded`      | `URL_SAFE_NO_PAD` |
 //!
-//! The last row is the only case that exercises `pad = false` against `+`/`/`
-//! rather than `-`/`_`, which is what keeps the alphabet and padding axes
-//! from being confounded.
+//! Note that the two naming schemes do not agree: a bare name means *padded*
+//! in the crate, whereas `Alphabet.v` abbreviates `standard_padded` to
+//! `standard` but `url_unpadded` to `url`.  So the crate's `URL_SAFE` is our
+//! `url_padded`, not our `url`.  The explicit names are used throughout this
+//! file for exactly that reason.
+//!
+//! `standard_unpadded` is the only case exercising `pad = false` against
+//! `+`/`/` rather than `-`/`_`, which is what keeps the alphabet and padding
+//! axes from being confounded.
 //! Python's `base64.b64decode(..., validate=True)`, by contrast, accepts
 //! `"QR=="`, so it would report false mismatches against our decoder.
 //!

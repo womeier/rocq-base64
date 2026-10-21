@@ -1,8 +1,8 @@
 (** * Test vectors
 
     The vectors from RFC 4648 section 10, checked by computation in all four
-    representations and for both shipped alphabets, plus negative tests that
-    pin down what the strict decoder rejects.
+    representations and for all four shipped configurations, plus negative
+    tests that pin down what the strict decoder rejects.
 
     These are regression tests: if the bit layout in [Sextet] or the alphabet
     table in [Alphabet] is ever wrong, the roundtrip theorems still hold (they
@@ -64,23 +64,23 @@ Example decode_url_foob   : decode url (b "Zm9vYg") = Some (b "foob"). Proof. re
     It agrees with [standard] exactly on the inputs whose length is a multiple
     of three, where no padding would be emitted anyway. *)
 
-Example encode_snp_f      : encode standard_no_pad (b "f")      = b "Zg".
+Example encode_sunpad_f      : encode standard_unpadded (b "f")      = b "Zg".
 Proof. reflexivity. Qed.
-Example encode_snp_fo     : encode standard_no_pad (b "fo")     = b "Zm8".
+Example encode_sunpad_fo     : encode standard_unpadded (b "fo")     = b "Zm8".
 Proof. reflexivity. Qed.
-Example encode_snp_foo    : encode standard_no_pad (b "foo")    = b "Zm9v".
+Example encode_sunpad_foo    : encode standard_unpadded (b "foo")    = b "Zm9v".
 Proof. reflexivity. Qed.
-Example decode_snp_f      : decode standard_no_pad (b "Zg")     = Some (b "f").
+Example decode_sunpad_f      : decode standard_unpadded (b "Zg")     = Some (b "f").
 Proof. reflexivity. Qed.
 
 (** It keeps [+] and [/], which is what distinguishes it from [url]. *)
-Example encode_snp_high :
-  encode standard_no_pad [Byte.xfb; Byte.xff; Byte.xbf] = b "+/+/".
+Example encode_sunpad_high :
+  encode standard_unpadded [Byte.xfb; Byte.xff; Byte.xbf] = b "+/+/".
 Proof. reflexivity. Qed.
 
 (** Being unpadded, it rejects the padding [standard] requires -- and vice
     versa. These two are the only reason the config exists. *)
-Example reject_snp_padded : decode standard_no_pad (b "Zg==") = None.
+Example reject_sunpad_padded : decode standard_unpadded (b "Zg==") = None.
 Proof. reflexivity. Qed.
 Example reject_standard_unpadded : decode standard (b "Zg") = None.
 Proof. reflexivity. Qed.
