@@ -101,20 +101,23 @@ Notation url := url_unpadded.
 
     A configuration makes sense when its 64 characters are distinct and none of
     them is the padding character. Everything proved about base64 below assumes
-    only this, so a user-supplied alphabet gets the whole theory for free. *)
+    only this, and each of the four shipped configurations comes with its own
+    proof below, so the theorems apply to them directly. *)
 
 Definition wf_config (c : config) : Prop :=
   NoDup (alphabet c) /\ ~ In pad_char (alphabet c).
 
-(** [wf_config] is decidable, which is how the shipped configurations discharge it. *)
+(** [wf_config] is decidable, which is how the four shipped configurations
+    discharge it below. The checker is [Local]: a caller works with those four
+    and never needs to run it. *)
 
-Fixpoint nodup_check (l : list byte) : bool :=
+Local Fixpoint nodup_check (l : list byte) : bool :=
   match l with
   | [] => true
   | x :: l => andb (negb (existsb (Byte.eqb x) l)) (nodup_check l)
   end.
 
-Lemma nodup_check_sound l : nodup_check l = true -> NoDup l.
+Local Lemma nodup_check_sound l : nodup_check l = true -> NoDup l.
 Proof.
   induction l as [|x l IH]; intros H; [constructor|].
   cbn in H. apply Bool.andb_true_iff in H as [Hx Hl].
@@ -125,11 +128,11 @@ Proof.
   now apply Byte.byte_dec_lb.
 Qed.
 
-Definition wf_check (c : config) : bool :=
+Local Definition wf_check (c : config) : bool :=
   andb (nodup_check (alphabet c))
        (negb (existsb (Byte.eqb pad_char) (alphabet c))).
 
-Lemma wf_check_sound c : wf_check c = true -> wf_config c.
+Local Lemma wf_check_sound c : wf_check c = true -> wf_config c.
 Proof.
   unfold wf_check, wf_config. intros H. apply Bool.andb_true_iff in H as [Hnd Hpad].
   split; [now apply nodup_check_sound|].

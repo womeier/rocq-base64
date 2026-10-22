@@ -8,10 +8,7 @@
     [decode], etc. unambiguously mean the generic [ByteString] versions;
     reach the core ones by writing [Base64.encode] and so on.
 
-    The MetaRocq bytestring bridge lives outside this package, in
-    [metarocq/MetaRocqString.v], so that depending on [rocq-base64] does not
-    pull in MetaRocq -- see that file.
-
     The test vectors in [Base64.Tests] are deliberately not re-exported. *)
 
-From Base64 Require Export Util Sextet Alphabet ByteString StdString PrimString.
+From Base64 Require Util Sextet.
+From Base64 Require Export Alphabet ByteString StdString PrimString.
