@@ -28,7 +28,7 @@ opam pin add rocq-base64 git+https://github.com/womeier/rocq-base64.git
 ## Variants
 
 A variant is determined by which characters encode 62 and 63, and whether the output is padded.
-RFC 4648 names two alphabets: `base64` (§4) and `base64url` (§5); §3.2 settles padding.
+RFC 4648 names two alphabets: the standard `base64` (§4) and `base64url` (§5).
 All four combinations ship:
 
 | Config              | 62 | 63 | Padded | Short name | RFC 4648 | Rust `base64` |
