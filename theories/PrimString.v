@@ -21,7 +21,7 @@ From Base64 Require ByteString.
 Import ListNotations.
 
 Notation pstring := PrimString.string.
-Notation char63 := PrimString.char63.
+Local Notation char63 := PrimString.char63.
 
 (** ** Bytes and [char63] *)
 

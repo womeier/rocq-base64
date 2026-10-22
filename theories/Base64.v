@@ -89,7 +89,7 @@ Fixpoint decode (c : config) (l : list byte) : option (list byte) :=
     functions. The main theorems are then little more than bookkeeping. *)
 
 Lemma dec_quad_enc c x y z s t u v :
-  wf c -> sextets_of_3 x y z = (s, t, u, v) ->
+  wf_config c -> sextets_of_3 x y z = (s, t, u, v) ->
   dec_quad c (enc_sextet c s) (enc_sextet c t) (enc_sextet c u) (enc_sextet c v)
   = Some [x; y; z].
 Proof.
@@ -98,7 +98,7 @@ Proof.
 Qed.
 
 Lemma dec_triple_enc c x y s t u :
-  wf c -> sextets_of_2 x y = (s, t, u) ->
+  wf_config c -> sextets_of_2 x y = (s, t, u) ->
   dec_triple c (enc_sextet c s) (enc_sextet c t) (enc_sextet c u) = Some [x; y].
 Proof.
   intros Hwf Hs. unfold dec_triple. rewrite !dec_enc by exact Hwf.
@@ -106,7 +106,7 @@ Proof.
 Qed.
 
 Lemma dec_pair_enc c x s t :
-  wf c -> sextets_of_1 x = (s, t) ->
+  wf_config c -> sextets_of_1 x = (s, t) ->
   dec_pair c (enc_sextet c s) (enc_sextet c t) = Some [x].
 Proof.
   intros Hwf Hs. unfold dec_pair. rewrite !dec_enc by exact Hwf.
@@ -210,7 +210,7 @@ Qed.
 (** ** The roundtrip theorems *)
 
 (** Everything [encode] produces is accepted, and decodes back unchanged. *)
-Theorem decode_encode c bs : wf c -> decode c (encode c bs) = Some bs.
+Theorem decode_encode c bs : wf_config c -> decode c (encode c bs) = Some bs.
 Proof.
   intros Hwf. induction bs as [|x|x y|x y z bs IH] using list_ind3.
   - reflexivity.
@@ -241,7 +241,7 @@ Qed.
 
 (** Conversely, anything [decode] accepts is exactly what [encode] would have
     produced. This is the direction that depends on the decoder being strict. *)
-Theorem encode_decode c l bs : wf c -> decode c l = Some bs -> encode c bs = l.
+Theorem encode_decode c l bs : wf_config c -> decode c l = Some bs -> encode c bs = l.
 Proof.
   intros Hwf. revert bs.
   induction l as [|a|a b|a b d|a b d e l IH] using list_ind4; intros bs H.
@@ -278,7 +278,7 @@ Qed.
 
     Both maps are injective, and [decode] determines its input. *)
 
-Corollary encode_inj c bs1 bs2 : wf c -> encode c bs1 = encode c bs2 -> bs1 = bs2.
+Corollary encode_inj c bs1 bs2 : wf_config c -> encode c bs1 = encode c bs2 -> bs1 = bs2.
 Proof.
   intros Hwf Heq.
   assert (Some bs1 = Some bs2) as H by
@@ -288,7 +288,7 @@ Proof.
 Qed.
 
 Corollary decode_inj c l1 l2 bs :
-  wf c -> decode c l1 = Some bs -> decode c l2 = Some bs -> l1 = l2.
+  wf_config c -> decode c l1 = Some bs -> decode c l2 = Some bs -> l1 = l2.
 Proof.
   intros Hwf H1 H2.
   rewrite <- (encode_decode c l1 bs Hwf H1), <- (encode_decode c l2 bs Hwf H2).
@@ -296,7 +296,7 @@ Proof.
 Qed.
 
 Corollary decode_encode_iff c l bs :
-  wf c -> decode c l = Some bs <-> encode c bs = l.
+  wf_config c -> decode c l = Some bs <-> encode c bs = l.
 Proof.
   intros Hwf. split.
   - now apply encode_decode.
@@ -398,7 +398,7 @@ Proof.
 Qed.
 
 Corollary decode_length_le c l bs :
-  wf c -> decode c l = Some bs -> length bs <= length l.
+  wf_config c -> decode c l = Some bs -> length bs <= length l.
 Proof.
   intros Hwf H. apply (encode_decode c l bs Hwf) in H as <-.
   apply encode_length_ge.

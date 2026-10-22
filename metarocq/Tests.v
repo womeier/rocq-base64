@@ -20,7 +20,7 @@ Example decode_bs_reject : decode standard (bs "QR==") = None.
 Proof. reflexivity. Qed.
 
 Example roundtrip_bs c s :
-  wf c -> decode c (encode c s) = Some (s : BS.t).
+  wf_config c -> decode c (encode c s) = Some (s : BS.t).
 Proof.
   intros Hwf. exact (@ByteString.decode_encode BS.t metarocq_bytestring c s Hwf I).
 Qed.

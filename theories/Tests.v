@@ -40,8 +40,8 @@ Example encode_sentence :
   = b "YW55IGNhcm5hbCBwbGVhc3VyZQ==".
 Proof. reflexivity. Qed.
 
-(** Bytes 251..255 land on the top of the alphabet, including [char62] and
-    [char63] -- the only two characters the configuration varies. *)
+(** Bytes 251..255 land on the top of the alphabet, including [char_62] and
+    [char_63] -- the only two characters the configuration varies. *)
 Example encode_high_standard :
   encode standard [Byte.xfb; Byte.xff; Byte.xbf] = b "+/+/".
 Proof. reflexivity. Qed.
@@ -150,25 +150,25 @@ Proof. vm_compute. reflexivity. Qed.
 Definition roundtrip {S : Type} `{ByteString S} (c : config) (s : S) : option S :=
   decode c (encode c s).
 
-Example roundtrip_bytes c s : wf c -> roundtrip c s = Some (s : list byte).
+Example roundtrip_bytes c s : wf_config c -> roundtrip c s = Some (s : list byte).
 Proof.
   intros Hwf. exact (@ByteString.decode_encode (list byte) byte_list_bytestring c s Hwf I).
 Qed.
 
-Example roundtrip_str c s : wf c -> roundtrip c s = Some (s : String.string).
+Example roundtrip_str c s : wf_config c -> roundtrip c s = Some (s : String.string).
 Proof.
   intros Hwf. exact (@ByteString.decode_encode String.string string_bytestring c s Hwf I).
 Qed.
 
 Example roundtrip_ps c (s : PrimString.string) :
-  wf c ->
+  wf_config c ->
   (Z.of_nat (List.length (encode c (bytes_of_pstring s)))
      <= Uint63.to_Z PrimString.max_length)%Z ->
   roundtrip c s = Some s.
 Proof. exact (@ByteString.decode_encode PrimString.string pstring_bytestring c s). Qed.
 
 Example roundtrip_ps_input_bound c (s : PrimString.string) :
-  wf c ->
+  wf_config c ->
   (2 * Uint63.to_Z (PrimString.length s) + 4 <= Uint63.to_Z PrimString.max_length)%Z ->
   roundtrip c s = Some s.
 Proof.
@@ -176,11 +176,11 @@ Proof.
 Qed.
 
 Example roundtrip_generic {S : Type} `{ByteString S} c (s : S) :
-  wf c -> fits (Base64.encode c (to_bytes s)) -> roundtrip c s = Some s.
+  wf_config c -> fits (Base64.encode c (to_bytes s)) -> roundtrip c s = Some s.
 Proof. exact (ByteString.decode_encode c s). Qed.
 
 Example successful_decode_generic {S : Type} `{ByteString S} c (s t : S) :
-  wf c -> decode c s = Some t -> encode c t = s.
+  wf_config c -> decode c s = Some t -> encode c t = s.
 Proof. exact (ByteString.encode_decode c s t). Qed.
 
 Example primitive_fits bs :
@@ -192,7 +192,7 @@ Example stdlib_always_fits bs : fits (S := String.string) bs.
 Proof. exact I. Qed.
 
 Example decoded_bytes_generic {S : Type} `{ByteString S} c (s : S) :
-  wf c -> option_map to_bytes (decode c s) = Base64.decode c (to_bytes s).
+  wf_config c -> option_map to_bytes (decode c s) = Base64.decode c (to_bytes s).
 Proof. exact (ByteString.to_bytes_decode c s). Qed.
 
 Example append_generic {S : Type} `{ByteString S} c (s t : S) :

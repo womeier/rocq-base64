@@ -52,8 +52,8 @@ Definition bindex_of_not_In := index_of_not_In Byte.eqb byte_eqb_true.
 (** ** Configurations *)
 
 Record config := {
-  char62 : byte;   (** the character encoding the value 62 *)
-  char63 : byte;   (** the character encoding the value 63 *)
+  char_62 : byte;  (** the character encoding the value 62 *)
+  char_63 : byte;  (** the character encoding the value 63 *)
   pad : bool       (** whether to emit (and require) [=] padding *)
 }.
 
@@ -63,7 +63,7 @@ Definition base_chars : list byte :=
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".
 
 Definition alphabet (c : config) : list byte :=
-  base_chars ++ [char62 c; char63 c].
+  base_chars ++ [char_62 c; char_63 c].
 
 Definition pad_char : byte := "="%byte.
 
@@ -73,9 +73,9 @@ Definition pad_char : byte := "="%byte.
     made consistent, because the two alphabets differ in what their usual
     padding is. *)
 
-Definition standard_padded   : config := {| char62 := "+"; char63 := "/"; pad := true  |}.
-Definition url_padded        : config := {| char62 := "-"; char63 := "_"; pad := true  |}.
-Definition url_unpadded      : config := {| char62 := "-"; char63 := "_"; pad := false |}.
+Definition standard_padded   : config := {| char_62 := "+"; char_63 := "/"; pad := true  |}.
+Definition url_padded        : config := {| char_62 := "-"; char_63 := "_"; pad := true  |}.
+Definition url_unpadded      : config := {| char_62 := "-"; char_63 := "_"; pad := false |}.
 
 (** "base64" with the padding skipped under section 3.2. Section 4 never
     mentions doing so -- unlike section 5, which does -- so of the four this
@@ -83,7 +83,7 @@ Definition url_unpadded      : config := {| char62 := "-"; char63 := "_"; pad :=
     a referring specification calls for it. Shipped because the combination
     does turn up in practice, and because leaving one corner of a square
     [config] already expresses without a name is the odd choice. *)
-Definition standard_unpadded : config := {| char62 := "+"; char63 := "/"; pad := false |}.
+Definition standard_unpadded : config := {| char_62 := "+"; char_63 := "/"; pad := false |}.
 
 (** The two readings in common use, kept short: "base64" is padded and
     "base64url" is not, which is what the RFC and practice expect of each.
@@ -103,10 +103,10 @@ Notation url := url_unpadded.
     them is the padding character. Everything proved about base64 below assumes
     only this, so a user-supplied alphabet gets the whole theory for free. *)
 
-Definition wf (c : config) : Prop :=
+Definition wf_config (c : config) : Prop :=
   NoDup (alphabet c) /\ ~ In pad_char (alphabet c).
 
-(** [wf] is decidable, which is how the shipped configurations discharge it. *)
+(** [wf_config] is decidable, which is how the shipped configurations discharge it. *)
 
 Fixpoint nodup_check (l : list byte) : bool :=
   match l with
@@ -129,9 +129,9 @@ Definition wf_check (c : config) : bool :=
   andb (nodup_check (alphabet c))
        (negb (existsb (Byte.eqb pad_char) (alphabet c))).
 
-Lemma wf_check_sound c : wf_check c = true -> wf c.
+Lemma wf_check_sound c : wf_check c = true -> wf_config c.
 Proof.
-  unfold wf_check, wf. intros H. apply Bool.andb_true_iff in H as [Hnd Hpad].
+  unfold wf_check, wf_config. intros H. apply Bool.andb_true_iff in H as [Hnd Hpad].
   split; [now apply nodup_check_sound|].
   apply Bool.negb_true_iff in Hpad. intros Hin.
   enough (existsb (Byte.eqb pad_char) (alphabet c) = true) by congruence.
@@ -139,16 +139,16 @@ Proof.
   now apply Byte.byte_dec_lb.
 Qed.
 
-Lemma standard_padded_wf : wf standard_padded.
+Lemma standard_padded_wf : wf_config standard_padded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
-Lemma url_padded_wf : wf url_padded.
+Lemma url_padded_wf : wf_config url_padded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
-Lemma url_unpadded_wf : wf url_unpadded.
+Lemma url_unpadded_wf : wf_config url_unpadded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
-Lemma standard_unpadded_wf : wf standard_unpadded.
+Lemma standard_unpadded_wf : wf_config standard_unpadded.
 Proof. apply wf_check_sound. vm_compute. reflexivity. Qed.
 
 (** ** Sextets and alphabet characters
@@ -169,7 +169,7 @@ Definition dec_byte (c : config) (b : byte) : option sextet :=
 Lemma sextet_to_nat_to_sextet n : n < 64 -> sextet_to_nat (nat_to_sextet n) = n.
 Proof. intros H. do 64 (destruct n as [|n]; [reflexivity|]). lia. Qed.
 
-Lemma dec_enc c s : wf c -> dec_byte c (enc_sextet c s) = Some s.
+Lemma dec_enc c s : wf_config c -> dec_byte c (enc_sextet c s) = Some s.
 Proof.
   intros [Hnd _]. unfold dec_byte, enc_sextet.
   rewrite bindex_of_nth
@@ -196,7 +196,7 @@ Proof.
   rewrite length_alphabet. apply sextet_to_nat_lt.
 Qed.
 
-Lemma enc_sextet_not_pad c s : wf c -> enc_sextet c s <> pad_char.
+Lemma enc_sextet_not_pad c s : wf_config c -> enc_sextet c s <> pad_char.
 Proof.
   intros [_ Hpad] Heq. apply Hpad. rewrite <- Heq. apply enc_sextet_In.
 Qed.
@@ -211,7 +211,7 @@ Proof.
   rewrite bindex_of_not_In by exact Hnin. reflexivity.
 Qed.
 
-Lemma dec_byte_pad c : wf c -> dec_byte c pad_char = None.
+Lemma dec_byte_pad c : wf_config c -> dec_byte c pad_char = None.
 Proof. intros [_ Hpad]. now apply dec_byte_not_In. Qed.
 
 Lemma dec_byte_Some_In c b s : dec_byte c b = Some s -> In b (alphabet c).

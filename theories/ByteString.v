@@ -57,14 +57,14 @@ Lemma to_bytes_encode c s :
 Proof. apply to_of_bytes. Qed.
 
 Lemma decode_fits c s bs :
-  wf c -> Base64.decode c (to_bytes s) = Some bs -> fits bs.
+  wf_config c -> Base64.decode c (to_bytes s) = Some bs -> fits bs.
 Proof.
   intros Hwf Hd. eapply (fits_shorter bs (to_bytes s)); [|apply fits_to_bytes].
   now apply (Base64.decode_length_le c _ bs).
 Qed.
 
 Lemma to_bytes_decode c s :
-  wf c -> option_map to_bytes (decode c s) = Base64.decode c (to_bytes s).
+  wf_config c -> option_map to_bytes (decode c s) = Base64.decode c (to_bytes s).
 Proof.
   intros Hwf. unfold decode.
   destruct (Base64.decode c (to_bytes s)) as [bs|] eqn:Hd; cbn; [|reflexivity].
@@ -72,7 +72,7 @@ Proof.
 Qed.
 
 Theorem decode_encode c s :
-  wf c -> fits (Base64.encode c (to_bytes s)) ->
+  wf_config c -> fits (Base64.encode c (to_bytes s)) ->
   decode c (encode c s) = Some s.
 Proof.
   intros Hwf Hfits. unfold decode. rewrite to_bytes_encode by exact Hfits.
@@ -80,7 +80,7 @@ Proof.
 Qed.
 
 Theorem encode_decode c s t :
-  wf c -> decode c s = Some t -> encode c t = s.
+  wf_config c -> decode c s = Some t -> encode c t = s.
 Proof.
   intros Hwf Hd. unfold decode in Hd.
   destruct (Base64.decode c (to_bytes s)) as [bs|] eqn:Hbs;
@@ -91,7 +91,7 @@ Proof.
 Qed.
 
 Corollary decode_encode_iff c s t :
-  wf c -> fits (Base64.encode c (to_bytes t)) ->
+  wf_config c -> fits (Base64.encode c (to_bytes t)) ->
   decode c s = Some t <-> encode c t = s.
 Proof.
   intros Hwf Hfits. split; [now apply encode_decode|].
@@ -99,7 +99,7 @@ Proof.
 Qed.
 
 Corollary encode_inj c s t :
-  wf c ->
+  wf_config c ->
   fits (Base64.encode c (to_bytes s)) ->
   fits (Base64.encode c (to_bytes t)) ->
   encode c s = encode c t -> s = t.
