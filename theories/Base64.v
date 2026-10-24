@@ -3,7 +3,7 @@
     This is the core of the library: [encode] and [decode] on [list byte],
     together with the two roundtrip theorems. Every [ByteString] instance --
     standard library strings, primitive strings, and the MetaRocq bytestrings
-    in [metarocq/] -- is derived from what is proved here, so this is the only
+    in [bytestring/] -- is derived from what is proved here, so this is the only
     place the algorithm is reasoned about.
 
     The decoder is deliberately strict. It rejects input whose length is not a

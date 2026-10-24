@@ -6,7 +6,7 @@
 
     This bridge is kept out of the [rocq-base64] package so that depending on
     it does not pull in MetaRocq; it ships as [rocq-base64-bytestring], built
-    from this directory. See [metarocq/Tests.v]. *)
+    from this directory. See [bytestring/Tests.v]. *)
 
 From Stdlib Require Import Strings.Byte Lists.List Arith.PeanoNat.
 From MetaRocq.Utils Require bytestring.

@@ -18,7 +18,7 @@
 let
   root = ../../..;
 
-  ## Only `metarocq/` and the Makefile: the theories come from `base64`, and
+  ## Only `bytestring/` and the Makefile: the theories come from `base64`, and
   ## the build must not pick up `.vo` files left behind in a working tree.
   relative = path: lib.removePrefix "${toString root}/" (toString path);
   source = lib.cleanSourceWith {
@@ -29,7 +29,7 @@ let
       let
         rel = relative path;
       in
-      (rel == "Makefile" || rel == "metarocq" || lib.hasPrefix "metarocq/" rel)
+      (rel == "Makefile" || rel == "bytestring" || lib.hasPrefix "bytestring/" rel)
       && !(lib.hasSuffix ".vo" rel)
       && !(lib.hasSuffix ".vos" rel)
       && !(lib.hasSuffix ".vok" rel)

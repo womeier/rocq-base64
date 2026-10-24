@@ -13,7 +13,7 @@ Base64 encoding and **strict** decoding in Rocq, following [RFC 4648](https://ww
 The lemmas are provided on a `ByteString` type class, with instances for `list byte`, the stdlib's `String`,
 and Rocq's `PrimString`.
 
-An instance for MetaRocq's `bytestring` lives in [`metarocq/`](metarocq/) and is installed by the
+An instance for MetaRocq's `bytestring` lives in [`bytestring/`](bytestring/) and is installed by the
 separate `rocq-base64-bytestring` package, so `rocq-base64` itself does **not** depend on MetaRocq.
 
 

@@ -20,7 +20,7 @@ Makefile.rocq: _RocqProject
 difftest:
 	@tests/run.sh
 
-# The MetaRocq bytestring instance in `metarocq/`, built and installed as the
+# The MetaRocq bytestring instance in `bytestring/`, built and installed as the
 # separate `rocq-base64-bytestring` opam package (see rocq-base64-bytestring.opam).
 # It is deliberately not part of `all`: the rocq-base64 package must not depend
 # on MetaRocq.
@@ -28,15 +28,15 @@ difftest:
 # This compiles against the *installed* library, found through ROCQPATH, never
 # against `theories/` -- that is what keeps the two packages independent, and
 # why the flags are spelled out here instead of reusing
-# `metarocq/_RocqProject`, whose `-Q ../theories Base64` line exists for
+# `bytestring/_RocqProject`, whose `-Q ../theories Base64` line exists for
 # editors only.  Needs the library and metarocq-utils in ROCQPATH:
 # `nix-shell --argstr job base64-bytestring --run "make bytestring"` provides
 # both, and CI builds the whole package through that same job
 # (`nix-build --argstr job base64-bytestring`).
-BYTESTRING_V := $(wildcard metarocq/*.v)
+BYTESTRING_V := $(wildcard bytestring/*.v)
 
 Makefile.bytestring: $(BYTESTRING_V)
-	$(COQBIN)rocq makefile -Q metarocq Base64.MetaRocq $(BYTESTRING_V) -o Makefile.bytestring
+	$(COQBIN)rocq makefile -Q bytestring Base64.MetaRocq $(BYTESTRING_V) -o Makefile.bytestring
 
 bytestring: Makefile.bytestring
 	@+$(MAKE) -f Makefile.bytestring all
