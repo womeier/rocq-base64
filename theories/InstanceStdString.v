@@ -46,8 +46,9 @@ Proof.
   exact (@ByteString.encode_length string string_bytestring c s I).
 Qed.
 
-(** The generic [append] is the standard library's own concatenation. *)
-Lemma append_string (s t : string) : ByteString.append s t = String.append s t.
+(** [ByteString.append] is the standard library's own concatenation. *)
+Lemma append_string (s t : string) :
+  ByteString.append s t = String.append s t.
 Proof.
   change (string_of_list_byte (list_byte_of_string s ++ list_byte_of_string t)
           = String.append s t).

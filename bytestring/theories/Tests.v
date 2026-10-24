@@ -30,5 +30,5 @@ Example append_bs_foobar :
   ByteString.append (encode standard (bs "foo")) (encode standard (bs "bar")).
 Proof. reflexivity. Qed.
 
-Example append_matches_bs_append s t : ByteString.append s t = BS.append s t.
+Example append_matches_bs s t : ByteString.append s t = BS.append s t.
 Proof. exact (append_bytestring s t). Qed.

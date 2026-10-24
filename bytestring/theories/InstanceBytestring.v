@@ -53,7 +53,7 @@ Proof.
   exact (@ByteString.encode_length BS.t metarocq_bytestring c s I).
 Qed.
 
-(** The generic [append] matches MetaRocq's own bytestring concatenation. *)
+(** [ByteString.append] matches MetaRocq's own concatenation. *)
 Lemma append_bytestring s t : ByteString.append s t = BS.append s t.
 Proof.
   change (BS.parse (BS.print s ++ BS.print t) = BS.append s t).

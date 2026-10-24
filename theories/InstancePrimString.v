@@ -78,13 +78,22 @@ Definition bytes_of_pstring (s : pstring) : list byte :=
 Definition pstring_of_bytes (bs : list byte) : pstring :=
   PrimStringAxioms.of_list (map char63_of_byte bs).
 
-Lemma pstring_of_bytes_of_pstring s : pstring_of_bytes (bytes_of_pstring s) = s.
+(** Every [char63] of an existing string is valid, so converting its bytes back
+    recovers the string's own [char63] list. *)
+Lemma map_char63_bytes_of_pstring s :
+  map char63_of_byte (bytes_of_pstring s) = PrimStringAxioms.to_list s.
 Proof.
-  unfold pstring_of_bytes, bytes_of_pstring. rewrite map_map.
+  unfold bytes_of_pstring. rewrite map_map.
   rewrite (map_ext_in _ id); [|intros a Ha; apply char63_of_byte_of_char63].
-  - rewrite map_id. apply PrimStringAxioms.of_to_list.
+  - apply map_id.
   - eapply (proj1 (Forall_forall _ _)); [|exact Ha].
     apply PrimStringAxioms.to_list_char63_valid.
+Qed.
+
+Lemma pstring_of_bytes_of_pstring s : pstring_of_bytes (bytes_of_pstring s) = s.
+Proof.
+  unfold pstring_of_bytes. rewrite map_char63_bytes_of_pstring.
+  apply PrimStringAxioms.of_to_list.
 Qed.
 
 Lemma bytes_of_pstring_of_bytes bs :
@@ -163,4 +172,24 @@ Proof.
   exact (f_equal (fun bs => Z.of_nat (length bs))
     (@ByteString.to_bytes_encode pstring pstring_bytestring c s
        (encode_fits c s Hlen))).
+Qed.
+
+(** ** Concatenation *)
+
+(** [ByteString.append] is the native [PrimString.cat], but only within
+    capacity: [cat] truncates at [max_length], so unlike the byte-list and
+    standard-string instances this agreement is not unconditional -- two
+    strings that each fit need not concatenate to one that does. The side
+    condition is on the inputs, as for [encode_fits]. *)
+Lemma append_pstring (s t : pstring) :
+  (Uint63.to_Z (PrimString.length s) + Uint63.to_Z (PrimString.length t)
+     <= Uint63.to_Z PrimString.max_length)%Z ->
+  ByteString.append s t = PrimString.cat s t.
+Proof.
+  intros Hlen.
+  change (pstring_of_bytes (bytes_of_pstring s ++ bytes_of_pstring t)
+          = PrimString.cat s t).
+  unfold pstring_of_bytes. rewrite map_app, !map_char63_bytes_of_pstring.
+  rewrite <- PString.to_list_cat by exact Hlen.
+  apply PrimStringAxioms.of_to_list.
 Qed.

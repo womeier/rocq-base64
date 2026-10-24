@@ -208,9 +208,9 @@ Example append_ps_foobar :
   ByteString.append (encode standard "foo"%pstring) (encode standard "bar"%pstring).
 Proof. vm_compute. reflexivity. Qed.
 
-(** ** The generic [append] agrees with each representation's own *)
+(** ** [ByteString.append] agrees with each representation's own *)
 
-(** For byte lists the generic [append] is plain [++], and for standard library
+(** For byte lists [ByteString.append] is plain [++], and for standard library
     strings it is [String.append]. This is what ties [encode_app] above to the
     concatenation a caller already uses. *)
 (* [string_scope] is open above, so spell out that this [++] is the list one. *)

@@ -41,7 +41,7 @@ Definition encode (c : config) (s : S) : S :=
 Definition decode (c : config) (s : S) : option S :=
   option_map of_bytes (Base64.decode c (to_bytes s)).
 
-Definition append (s t : S) : S := of_bytes (to_bytes s ++ to_bytes t).
+Local Definition append (s t : S) : S := of_bytes (to_bytes s ++ to_bytes t).
 
 Lemma encode_of_bytes c bs :
   fits bs -> encode c (of_bytes bs) = of_bytes (Base64.encode c bs).
