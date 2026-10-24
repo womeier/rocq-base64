@@ -172,7 +172,7 @@ Example roundtrip_ps_input_bound c (s : PrimString.string) :
   (2 * Uint63.to_Z (PrimString.length s) + 4 <= Uint63.to_Z PrimString.max_length)%Z ->
   roundtrip c s = Some s.
 Proof.
-  intros Hwf Hlen. exact (ByteString.decode_encode c s Hwf (PrimString.encode_fits c s Hlen)).
+  intros Hwf Hlen. exact (ByteString.decode_encode c s Hwf (InstancePrimString.encode_fits c s Hlen)).
 Qed.
 
 Example roundtrip_generic {S : Type} `{ByteString S} c (s : S) :

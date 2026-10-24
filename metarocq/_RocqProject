@@ -6,5 +6,5 @@
 -Q . Base64.MetaRocq
 -Q ../theories Base64
 
-Bytestring.v
+InstanceBytestring.v
 Tests.v

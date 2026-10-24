@@ -11,4 +11,4 @@
     The test vectors in [Base64.Tests] are deliberately not re-exported. *)
 
 From Base64 Require Util Sextet.
-From Base64 Require Export Alphabet ByteString StdString PrimString.
+From Base64 Require Export Alphabet ByteString InstanceStdString InstancePrimString.

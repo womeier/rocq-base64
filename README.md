@@ -75,7 +75,7 @@ MetaRocq's bytestrings need the separate `rocq-base64-bytestring` package:
 
 ```coq
 From Base64 Require Import All.
-From Base64.MetaRocq Require Import Bytestring.
+From Base64.MetaRocq Require Import InstanceBytestring.
 
 Compute encode standard (BS.parse (list_byte_of_string "foobar")).
 Compute decode standard (BS.parse (list_byte_of_string "Zm9vYmFy")).

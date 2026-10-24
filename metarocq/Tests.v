@@ -1,11 +1,11 @@
 (** * Test vectors for the MetaRocq bytestring bridge
 
     Counterpart to [Base64.Tests], for the bridge kept out of the installed
-    package (see [Bytestring.v]). *)
+    package (see [InstanceBytestring.v]). *)
 
 From Stdlib Require Import Strings.Byte Strings.String Lists.List.
 From Base64 Require Import All.
-From Base64.MetaRocq Require Import Bytestring.
+From Base64.MetaRocq Require Import InstanceBytestring.
 Import ListNotations.
 
 Definition bs (x : String.string) : BS.t := BS.parse (list_byte_of_string x).
