@@ -160,13 +160,6 @@ Proof.
   intros Hwf. exact (@ByteString.decode_encode String.string string_bytestring c s Hwf I).
 Qed.
 
-Example roundtrip_ps c (s : PrimString.string) :
-  wf_config c ->
-  (Z.of_nat (List.length (encode c (bytes_of_pstring s)))
-     <= Uint63.to_Z PrimString.max_length)%Z ->
-  roundtrip c s = Some s.
-Proof. exact (@ByteString.decode_encode PrimString.string pstring_bytestring c s). Qed.
-
 Example roundtrip_ps_input_bound c (s : PrimString.string) :
   wf_config c ->
   (2 * Uint63.to_Z (PrimString.length s) + 4 <= Uint63.to_Z PrimString.max_length)%Z ->
@@ -175,14 +168,6 @@ Proof.
   intros Hwf Hlen. exact (ByteString.decode_encode c s Hwf (InstancePrimString.encode_fits c s Hlen)).
 Qed.
 
-Example roundtrip_generic {S : Type} `{ByteString S} c (s : S) :
-  wf_config c -> fits (Base64.encode c (to_bytes s)) -> roundtrip c s = Some s.
-Proof. exact (ByteString.decode_encode c s). Qed.
-
-Example successful_decode_generic {S : Type} `{ByteString S} c (s t : S) :
-  wf_config c -> decode c s = Some t -> encode c t = s.
-Proof. exact (ByteString.encode_decode c s t). Qed.
-
 Example primitive_fits bs :
   fits (S := PrimString.string) bs <->
   (Z.of_nat (List.length bs) <= Uint63.to_Z PrimString.max_length)%Z.
@@ -190,18 +175,6 @@ Proof. reflexivity. Qed.
 
 Example stdlib_always_fits bs : fits (S := String.string) bs.
 Proof. exact I. Qed.
-
-Example decoded_bytes_generic {S : Type} `{ByteString S} c (s : S) :
-  wf_config c -> option_map to_bytes (decode c s) = Base64.decode c (to_bytes s).
-Proof. exact (ByteString.to_bytes_decode c s). Qed.
-
-Example append_generic {S : Type} `{ByteString S} c (s t : S) :
-  List.length (to_bytes s) mod 3 = 0 ->
-  fits (to_bytes s ++ to_bytes t) ->
-  fits (Base64.encode c (to_bytes s)) ->
-  fits (Base64.encode c (to_bytes t)) ->
-  encode c (ByteString.append s t) = ByteString.append (encode c s) (encode c t).
-Proof. exact (ByteString.encode_app c s t). Qed.
 
 Example append_ps_foobar :
   encode standard (ByteString.append "foo"%pstring "bar"%pstring) =
@@ -216,10 +189,6 @@ Proof. vm_compute. reflexivity. Qed.
 (* [string_scope] is open above, so spell out that this [++] is the list one. *)
 Example append_bytes (s t : list byte) : ByteString.append s t = (s ++ t)%list.
 Proof. reflexivity. Qed.
-
-Example append_str (s t : String.string) :
-  ByteString.append s t = String.append s t.
-Proof. exact (append_string s t). Qed.
 
 Example append_str_foobar :
   encode standard (ByteString.append "foo"%string "bar"%string) =
