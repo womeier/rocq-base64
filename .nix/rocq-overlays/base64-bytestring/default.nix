@@ -2,9 +2,8 @@
 #
 # The bridge is not part of the `base64` package -- that package must not drag
 # MetaRocq in -- so it is built and installed here instead, on top of the
-# installed library.  This is what keeps MetaRocq in CI, and it exercises the
-# packaging path (`make bytestring` / `make install-bytestring`) that
-# rocq-base64-bytestring.opam uses.
+# installed library.  This is what keeps MetaRocq in CI, and it builds through
+# the same `make -C bytestring` that rocq-base64-bytestring.opam uses.
 #
 # nix-build --argstr job base64-bytestring
 {
@@ -18,8 +17,17 @@
 let
   root = ../../..;
 
-  ## Only `bytestring/`: the theories come from `base64`, and
-  ## the build must not pick up `.vo` files left behind in a working tree.
+  ## Only `bytestring/`: the theories come from `base64`.
+  ##
+  ## The `.vo` exclusions are load-bearing here and nowhere else.  For its one
+  ## configured `attribute` (`base64`) the toolbox injects the local sources by
+  ## overriding `version` with a `fetchGit` of this repo, which copies tracked
+  ## files only -- but there is no such mechanism for a second local package,
+  ## so this one builds its src from a plain path, and a plain path includes
+  ## gitignored files.  A `.vo` that arrives that way reads as up to date (the
+  ## store stamps every file with the same mtime), so `make` would skip the
+  ## recompile and install the stale artefact.  Omit these lines in the nixpkgs
+  ## expression, where src is a release tarball and cannot carry build output.
   relative = path: lib.removePrefix "${toString root}/" (toString path);
   source = lib.cleanSourceWith {
     name = "rocq-base64-bytestring";
