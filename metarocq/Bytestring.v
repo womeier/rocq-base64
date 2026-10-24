@@ -4,9 +4,9 @@
     This module supplies the byte conversions and relates the generic length
     result to MetaRocq's native length.
 
-    This bridge is kept out of the installed [rocq-base64] package so that
-    depending on it does not pull in MetaRocq; it is built and tested only in
-    CI, from this directory. See [metarocq/Tests.v]. *)
+    This bridge is kept out of the [rocq-base64] package so that depending on
+    it does not pull in MetaRocq; it ships as [rocq-base64-bytestring], built
+    from this directory. See [metarocq/Tests.v]. *)
 
 From Stdlib Require Import Strings.Byte Lists.List Arith.PeanoNat.
 From MetaRocq.Utils Require bytestring.

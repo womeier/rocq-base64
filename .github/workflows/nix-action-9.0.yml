@@ -66,7 +66,7 @@ jobs:
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "9.0" 
         --argstr job "base64"
-  base64-metarocq:
+  base64-bytestring:
     needs:
     - rocq-core
     - base64
@@ -107,9 +107,9 @@ jobs:
         extraPullNames: coq-community, math-comp
         name: coq
     - id: stepGetDerivation
-      name: Getting derivation for current job (base64-metarocq)
+      name: Getting derivation for current job (base64-bytestring)
       run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
-        \"9.0\" --argstr job \"base64-metarocq\" \\\n   --dry-run 2> err > out ||
+        \"9.0\" --argstr job \"base64-bytestring\" \\\n   --dry-run 2> err > out ||
         (touch fail; true)\ncat out err\nif [ -e fail ]; then echo \"Error: getting
         derivation failed\"; exit 1; fi\n"
     - id: stepCheck
@@ -134,7 +134,7 @@ jobs:
     - if: steps.stepCheck.outputs.status != 'fetched'
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "9.0" 
-        --argstr job "base64-metarocq"
+        --argstr job "base64-bytestring"
   base64-testsuite:
     needs:
     - rocq-core

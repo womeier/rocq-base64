@@ -27,8 +27,8 @@ mkRocqDerivation {
 
   release."0.1.0".sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
-  # No MetaRocq here: the bytestring bridge is not installed with the library,
-  # so the package stays stdlib-only.  See `.nix/rocq-overlays/base64-metarocq`.
+  # No MetaRocq here: the bytestring bridge ships as its own package, so this
+  # one stays stdlib-only.  See `.nix/rocq-overlays/base64-bytestring`.
   propagatedBuildInputs = [ stdlib ];
 
   releaseRev = v: "v${v}";

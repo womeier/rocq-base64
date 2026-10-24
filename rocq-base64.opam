@@ -9,12 +9,9 @@ license: "MIT"
 
 synopsis: "Verified RFC 4648 base64 encoding and decoding in Rocq"
 description: """
-Base64 encoding and decoding.
-Ships the RFC 4648 section 4 (standard) and section 5 (base64url) alphabets,
-together with a ByteString type class that lifts the whole theory to byte
+Base64 encoding and decoding. A ByteString type class lifts the theory to byte
 lists, to the standard library's strings and to Rocq's primitive strings.
-A bridge to MetaRocq's bytestrings ships in the repository's metarocq/
-directory; it is not installed, so this package does not depend on MetaRocq.
+A bridge to MetaRocq's bytestrings ships as the separate rocq-base64-bytestring package.
 """
 
 build: [make "-j%{jobs}%"]

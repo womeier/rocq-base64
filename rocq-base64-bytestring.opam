@@ -1,0 +1,37 @@
+opam-version: "2.0"
+maintainer: "Wolfgang Meier"
+version: "dev"
+
+homepage: "https://github.com/womeier/rocq-base64"
+dev-repo: "git+https://github.com/womeier/rocq-base64.git"
+bug-reports: "https://github.com/womeier/rocq-base64/issues"
+license: "MIT"
+
+synopsis: "MetaRocq bytestring support for rocq-base64"
+description: """
+The MetaRocq bytestring instance of rocq-base64's ByteString type class,
+which lifts base64 encoding and decoding, and their correctness proofs, to
+MetaRocq's bytestring type.
+"""
+
+build: [make "-j%{jobs}%" "bytestring"]
+install: [make "install-bytestring"]
+depends: [
+  "rocq-core" {>= "9.0" }
+  "rocq-stdlib"
+  "rocq-base64" {>= "0.1.0"}
+  "rocq-metarocq-utils" {>= "1.4"}
+]
+
+tags: [
+  "category:Computer Science/Data Types and Data Structures"
+  "keyword:base64"
+  "keyword:RFC 4648"
+  "keyword:strings"
+  "keyword:bytes"
+  "keyword:metarocq"
+  "logpath:Base64.MetaRocq"
+]
+authors: [
+  "Wolfgang Meier"
+]

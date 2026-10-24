@@ -32,8 +32,11 @@ nlia.cache
 nra.cache
 .Makefile.d
 .Makefile.rocq.d
+.Makefile.bytestring.d
 Makefile.rocq
 Makefile.rocq.conf
+Makefile.bytestring
+Makefile.bytestring.conf
 
 result
 

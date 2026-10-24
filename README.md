@@ -13,8 +13,8 @@ Base64 encoding and **strict** decoding in Rocq, following [RFC 4648](https://ww
 The lemmas are provided on a `ByteString` type class, with instances for `list byte`, the stdlib's `String`,
 and Rocq's `PrimString`.
 
-An instance for MetaRocq's `bytestring` lives in [`metarocq/`](metarocq/). It is **not** part of the
-installed package, so `rocq-base64` does not depend on MetaRocq.
+An instance for MetaRocq's `bytestring` lives in [`metarocq/`](metarocq/) and is installed by the
+separate `rocq-base64-bytestring` package, so `rocq-base64` itself does **not** depend on MetaRocq.
 
 
 ## Install
@@ -23,6 +23,9 @@ installed package, so `rocq-base64` does not depend on MetaRocq.
 # once, if you do not have Rocq from opam already
 opam repo add rocq-released https://rocq-prover.org/opam/released
 opam pin add rocq-base64 git+https://github.com/womeier/rocq-base64.git
+
+# optional, for MetaRocq's bytestrings (pulls in MetaRocq)
+opam pin add rocq-base64-bytestring git+https://github.com/womeier/rocq-base64.git
 ```
 
 ## Variants
@@ -68,11 +71,11 @@ Compute decode url "Zm9vYg"%pstring.        (* = Some "foob"%pstring *)
 type-class versions. The core functions on `list byte` stay reachable as `Base64.encode` and
 `Base64.decode`.
 
-MetaRocq's bytestrings need the separate directory, which is not installed:
+MetaRocq's bytestrings need the separate `rocq-base64-bytestring` package:
 
 ```coq
 From Base64 Require Import All.
-From Base64Metarocq Require Import MetaRocqString.
+From Base64.MetaRocq Require Import Bytestring.
 
 Compute encode standard (BS.parse (list_byte_of_string "foobar")).
 Compute decode standard (BS.parse (list_byte_of_string "Zm9vYmFy")).
@@ -83,8 +86,8 @@ The test suite ensures that this library behaves like the [base64 Rust library](
 ```sh
 nix-build --argstr job base64-testsuite
 
-# extra job for running the metarocq one
-nix-build --argstr job base64-metarocq
+# extra job: builds the rocq-base64-bytestring package, bridge and tests included
+nix-build --argstr job base64-bytestring
 ```
 
 ## What "strict" means

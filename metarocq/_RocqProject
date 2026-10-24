@@ -1,9 +1,10 @@
-# The MetaRocq bytestring bridge, kept out of the installed rocq-base64
-# package so that depending on it does not pull in MetaRocq.  Built by
-# `make metarocq` (see metarocq/run.sh); this file is here so editors resolve
-# the two logical paths.
--Q . Base64Metarocq
+# The MetaRocq bytestring bridge, kept out of the rocq-base64 package so that
+# depending on it does not pull in MetaRocq; it is installed on its own, as
+# rocq-base64-bytestring (`make bytestring`).  That build does not use this file
+# -- it compiles against the installed library, not `../theories` -- this is
+# here so editors resolve the two logical paths.
+-Q . Base64.MetaRocq
 -Q ../theories Base64
 
-MetaRocqString.v
+Bytestring.v
 Tests.v
