@@ -14,8 +14,8 @@ which lifts base64 encoding and decoding, and their correctness proofs, to
 MetaRocq's bytestring type.
 """
 
-build: [make "-j%{jobs}%" "bytestring"]
-install: [make "install-bytestring"]
+build: [make "-C" "bytestring" "-j%{jobs}%"]
+install: [make "-C" "bytestring" "install"]
 depends: [
   "rocq-core" {>= "9.0" }
   "rocq-stdlib"

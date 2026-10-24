@@ -1,10 +1,8 @@
 # The MetaRocq bytestring bridge, kept out of the rocq-base64 package so that
 # depending on it does not pull in MetaRocq; it is installed on its own, as
-# rocq-base64-bytestring (`make bytestring`).  That build does not use this file
-# -- it compiles against the installed library, not `../theories` -- this is
-# here so editors resolve the two logical paths.
+# rocq-base64-bytestring.  `Base64` is not bound here: it comes from the
+# installed library through ROCQPATH, for editors exactly as for the build.
 -Q . Base64.MetaRocq
--Q ../theories Base64
 
 InstanceBytestring.v
 Tests.v

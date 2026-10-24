@@ -18,7 +18,7 @@
 let
   root = ../../..;
 
-  ## Only `bytestring/` and the Makefile: the theories come from `base64`, and
+  ## Only `bytestring/`: the theories come from `base64`, and
   ## the build must not pick up `.vo` files left behind in a working tree.
   relative = path: lib.removePrefix "${toString root}/" (toString path);
   source = lib.cleanSourceWith {
@@ -29,7 +29,7 @@ let
       let
         rel = relative path;
       in
-      (rel == "Makefile" || rel == "bytestring" || lib.hasPrefix "bytestring/" rel)
+      (rel == "bytestring" || lib.hasPrefix "bytestring/" rel)
       && !(lib.hasSuffix ".vo" rel)
       && !(lib.hasSuffix ".vos" rel)
       && !(lib.hasSuffix ".vok" rel)
@@ -61,9 +61,8 @@ stdenv.mkDerivation {
 
   ## `base64` is already installed and on ROCQPATH, which is where the
   ## `bytestring` target expects to find it; `theories/` is not even in `src`.
-  buildFlags = [ "bytestring" ];
+  makeFlags = [ "-C" "bytestring" ];
 
-  installTargets = [ "install-bytestring" ];
   installFlags = [
     "COQLIBINSTALL=${placeholder "out"}/lib/coq/${rocq-core.rocq-version}/user-contrib"
   ];
