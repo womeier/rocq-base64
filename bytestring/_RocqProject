@@ -2,7 +2,7 @@
 # depending on it does not pull in MetaRocq; it is installed on its own, as
 # rocq-base64-bytestring.  `Base64` is not bound here: it comes from the
 # installed library through ROCQPATH, for editors exactly as for the build.
--Q . Base64.MetaRocq
+-Q theories Base64.MetaRocq
 
-InstanceBytestring.v
-Tests.v
+theories/InstanceBytestring.v
+theories/Tests.v
