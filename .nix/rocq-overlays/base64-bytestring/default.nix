@@ -7,49 +7,20 @@
 #
 # nix-build --argstr job base64-bytestring
 {
-  lib,
   stdenv,
   base64,
   rocq-core,
   metarocq-utils,
 }:
 
-let
-  root = ../../..;
-
-  ## Only `bytestring/`: the theories come from `base64`.
-  ##
-  ## The `.vo` exclusions are load-bearing here and nowhere else.  For its one
-  ## configured `attribute` (`base64`) the toolbox injects the local sources by
-  ## overriding `version` with a `fetchGit` of this repo, which copies tracked
-  ## files only -- but there is no such mechanism for a second local package,
-  ## so this one builds its src from a plain path, and a plain path includes
-  ## gitignored files.  A `.vo` that arrives that way reads as up to date (the
-  ## store stamps every file with the same mtime), so `make` would skip the
-  ## recompile and install the stale artefact.  Omit these lines in the nixpkgs
-  ## expression, where src is a release tarball and cannot carry build output.
-  relative = path: lib.removePrefix "${toString root}/" (toString path);
-  source = lib.cleanSourceWith {
-    name = "rocq-base64-bytestring";
-    src = root;
-    filter =
-      path: _type:
-      let
-        rel = relative path;
-      in
-      (rel == "bytestring" || lib.hasPrefix "bytestring/" rel)
-      && !(lib.hasSuffix ".vo" rel)
-      && !(lib.hasSuffix ".vos" rel)
-      && !(lib.hasSuffix ".vok" rel)
-      && !(lib.hasSuffix ".glob" rel);
-  };
-in
-
 stdenv.mkDerivation {
   pname = "base64-bytestring";
-  inherit (base64) version;
 
-  src = source;
+  ## One checkout, one revision: the two packages are built from the same tree,
+  ## so they share the fetch rather than each describing the source again.
+  ## Locally that is the toolbox's `fetchGit` of this repo; in nixpkgs it is the
+  ## release tarball.  Either way it carries no build output of its own.
+  inherit (base64) version src;
 
   buildInputs = [
     rocq-core
@@ -67,8 +38,9 @@ stdenv.mkDerivation {
 
   dontConfigure = true;
 
-  ## `base64` is already installed and on ROCQPATH, which is where the
-  ## `bytestring` target expects to find it; `theories/` is not even in `src`.
+  ## Only `bytestring/` is built, and `bytestring/_RocqProject` binds just
+  ## `-Q theories Base64.MetaRocq`: `Base64` is resolved through ROCQPATH, from
+  ## the installed `base64`, never from the `theories/` that share this source.
   makeFlags = [ "-C" "bytestring" ];
 
   installFlags = [
