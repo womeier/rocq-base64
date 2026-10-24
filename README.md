@@ -20,12 +20,11 @@ separate `rocq-base64-bytestring` package, so `rocq-base64` itself does **not** 
 ## Install
 
 ```sh
-# once, if you do not have Rocq from opam already
 opam repo add rocq-released https://rocq-prover.org/opam/released
-opam pin add rocq-base64 git+https://github.com/womeier/rocq-base64.git
 
-# optional, for MetaRocq's bytestrings (pulls in MetaRocq)
-opam pin add rocq-base64-bytestring git+https://github.com/womeier/rocq-base64.git
+opam install rocq-base64
+# for MetaRocq's bytestrings
+opam install rocq-base64-bytestring
 ```
 
 ## Variants
