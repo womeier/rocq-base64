@@ -26,10 +26,6 @@
     rocqPackages.rocq-core.override.version = "9.2";
     rocqPackages.coq.override.version = "9.2";
     rocqPackages.coq.job = false;
-    ## nixpkgs' metarocq has no defaultVersion past coq 9.1, which makes
-    ## `metarocq-utils` (= `metarocq.utils`) evaluate as -broken.  Naming the
-    ## upstream tag is what un-breaks it; base64 needs it now that
-    ## InstanceBytestring.v is part of the library.
     rocqPackages.metarocq.override.version = "v1.5.1-9.2";
     rocqPackages.metarocq.job = false;
     ## The differential test against the Rust `base64` crate

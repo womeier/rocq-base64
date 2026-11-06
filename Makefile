@@ -9,16 +9,20 @@ Makefile.rocq: _RocqProject
 	$(COQBIN)rocq makefile -f _RocqProject -o Makefile.rocq
 
 # Differential test against the Rust `base64` crate, on a corpus ported from
-# that crate's own test suite.  Needs ocaml, cargo and rustc:
-# `nix-shell --argstr job base64-testsuite` provides them.  CI runs the same
-# comparison through that job (`nix-build --argstr job base64-testsuite`),
-# which vendors the crate from Cargo.lock instead of fetching it.
+# that crate's own test suite.
 difftest:
 	@tests/run.sh
+
+# Compile the README's examples, this should only be run inside nix
+importtest:
+	@for f in tests/import_test_*.v; do \
+	  printf '\n== %s\n' "$$f"; \
+	  $(COQBIN)rocq c "$$f"; \
+	done
 
 force _RocqProject Makefile: ;
 
 %: Makefile.rocq force
 	@+$(MAKE) -f Makefile.rocq $@
 
-.PHONY: all clean force difftest
+.PHONY: all clean force difftest importtest
