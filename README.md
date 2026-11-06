@@ -40,46 +40,59 @@ The short names are additional Rocq notations, as they are the most commonly use
 
 ## Examples
 
+### Byte list
+
 ```coq
 From Base64 Require Import All.
 From Stdlib Require Import Strings.String.   (* for list_byte_of_string *)
 
-(* bytes *)
-Compute encode standard (list_byte_of_string "any carnal pleasure").
-     (* = list_byte_of_string "YW55IGNhcm5hbCBwbGVhc3VyZQ==" *)
+Compute encode standard (list_byte_of_string "the quick brown fox jumps").
+     (* = list_byte_of_string "dGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcw==" *)
 Compute decode url (list_byte_of_string "Zm9vYg").
      (* = Some (list_byte_of_string "foob") *)
+```
 
-(* stdlib strings *)
+
+### Stdlib string
+
+```coq
+From Base64 Require Import All.
+From Stdlib Require Import Strings.String.
+
 Compute encode standard "foobar"%string.   (* = "Zm9vYmFy"%string *)
 Compute decode url "Zm9vYg"%string.        (* = Some "foob"%string *)
+```
 
-(* primitive strings.  `All` only `Require`s `PrimString`, so that it does not
-   shadow `String.string`; import it yourself to get the `"..."` literals. *)
+### Primitive string
+
+```coq
+From Base64 Require Import All.
 From Stdlib Require Import Strings.PrimString.
+
 Compute encode standard "foobar"%pstring.   (* = "Zm9vYmFy"%pstring *)
 Compute decode url "Zm9vYg"%pstring.        (* = Some "foob"%pstring *)
 ```
 
-`All` exports the generic `ByteString` API, so the bare `encode`/`decode` above always mean the
-type-class versions. The core functions on `list byte` stay reachable as `Base64.encode` and
-`Base64.decode`.
-
-MetaRocq's bytestrings work the same way. `All` does not re-export that instance -- MetaRocq's
-`String` module would shadow the standard library's -- so require it yourself:
+### MetaRocq bytestring
 
 ```coq
 From Base64 Require Import All.
 From Base64 Require Import InstanceBytestring.
+Import MetaRocq.Utils.bytestring.   (* for the "..."%bs literals *)
 
-Compute encode standard (BS.parse (list_byte_of_string "foobar")).
-Compute decode standard (BS.parse (list_byte_of_string "Zm9vYmFy")).
+Compute encode standard "foobar"%bs.     (* = "Zm9vYmFy"%bs *)
+Compute decode standard "Zm9vYmFy"%bs.   (* = Some "foobar"%bs *)
 ```
 
 ## Tests
-The test suite ensures that this library behaves like the [base64 Rust library](https://crates.io/crates/base64).
+The test suite ensures that this library behaves like the [base64 Rust library](https://crates.io/crates/base64),
+and compiles the usage examples above against the installed library.
 ```sh
 nix-build --argstr job base64-testsuite
+```
+Either half runs on its own from the same job's shell, which installs the library both halves test against:
+```sh
+nix-shell --argstr job base64-testsuite --run 'make difftest importtest'
 ```
 
 ## What "strict" means

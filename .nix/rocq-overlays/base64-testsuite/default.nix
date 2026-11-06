@@ -66,6 +66,11 @@ stdenv.mkDerivation {
   buildInputs = [
     rocq-core
     base64
+    ## `tests/import_test_bytestring.v` requires `Base64.InstanceBytestring`,
+    ## which pulls in MetaRocq.Utils and with it the Equations plugin: findlib
+    ## must assemble OCAMLPATH from the propagated plugin site-libs.  Mirrors
+    ## the same line in the `base64` overlay.
+    rocq-core.ocamlPackages.findlib
   ];
 
   dontConfigure = true;
@@ -76,8 +81,14 @@ stdenv.mkDerivation {
     runHook preCheck
     ## `tee` must not swallow a mismatch.
     set -o pipefail
-    env BASE64_PREBUILT=1 B64REF=${lib.getExe reference} \
-      bash tests/run.sh 2>&1 | tee difftest.log
+    env B64REF=${lib.getExe reference} bash tests/run.sh 2>&1 | tee difftest.log
+    ## The README's usage examples, compiled against the installed library:
+    ## this is what catches an `Import` line that no longer puts `encode`,
+    ## `decode` or the string literals in scope.
+    for f in tests/import_test_*.v; do
+      echo "== $f"
+      rocq c "$f"
+    done
     runHook postCheck
   '';
 

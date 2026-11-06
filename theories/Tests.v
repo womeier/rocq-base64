@@ -38,8 +38,8 @@ Example decode_foobar : decode standard (b "Zm9vYmFy") = Some (b "foobar"). Proo
 
 (** A longer vector, and one exercising all three high bits of the alphabet. *)
 Example encode_sentence :
-  encode standard (b "any carnal pleasure")
-  = b "YW55IGNhcm5hbCBwbGVhc3VyZQ==".
+  encode standard (b "the quick brown fox jumps")
+  = b "dGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcw==".
 Proof. reflexivity. Qed.
 
 (** Bytes 251..255 land on the top of the alphabet, including [char_62] and
