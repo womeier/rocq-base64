@@ -3,15 +3,16 @@
 # Rust `base64` crate, on a corpus ported from that crate's own test suite.
 # See tests/reference/src/main.rs for why that crate is the oracle.
 #
-# Run from a nix-shell (which provides rocq, ocaml, cargo and rustc):
-#   make difftest      or      tests/run.sh
+# The library is never built here: it has to be installed already, reachable
+# through ROCQPATH.  The testsuite nix-shell provides exactly that, along with
+# rocq, ocaml, cargo and rustc:
 #
-# Two environment variables let a packager supply what it has already built;
-# the nix `base64-testsuite` overlay sets both, which is what lets the test run
+#   nix-shell --argstr job base64-testsuite --run 'make difftest'
+#
+# One environment variable lets a packager supply what it has already built;
+# the nix `base64-testsuite` overlay sets it, which is what lets the test run
 # in a sandbox with no network:
 #
-#   BASE64_PREBUILT=1   the library is installed and reachable through
-#                       ROCQPATH, so skip `make` and the `-Q` flag
 #   B64REF=<path>       the reference binary, so skip `cargo build`
 set -euo pipefail
 
@@ -23,7 +24,6 @@ trap 'rm -rf "$work"' EXIT
 
 say() { printf '\n== %s\n' "$*"; }
 
-prebuilt=${BASE64_PREBUILT:-}
 ref=${B64REF:-}
 
 tools=(rocq ocamlopt ocamldep)
@@ -32,19 +32,10 @@ for tool in "${tools[@]}"; do
   command -v "$tool" >/dev/null || { echo "difftest: $tool not found in PATH" >&2; exit 1; }
 done
 
-if [ -n "$prebuilt" ]; then
-  say "using the installed library (found through ROCQPATH)"
-  rocqflags=()
-else
-  say "building the library"
-  make -j"$(nproc)" >/dev/null
-  rocqflags=(-Q theories Base64)
-fi
-
-say "extracting theories/Base64.v to OCaml"
+say "extracting theories/Base64.v to OCaml (installed library, via ROCQPATH)"
 rm -rf tests/extracted
 mkdir -p tests/extracted
-rocq c ${rocqflags[@]+"${rocqflags[@]}"} tests/Extraction.v
+rocq c tests/Extraction.v
 
 say "compiling the extracted encoder/decoder"
 cp tests/harness.ml tests/extracted/
