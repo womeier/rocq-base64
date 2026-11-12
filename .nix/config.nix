@@ -26,8 +26,6 @@
     rocqPackages.rocq-core.override.version = "9.2";
     rocqPackages.coq.override.version = "9.2";
     rocqPackages.coq.job = false;
-    rocqPackages.metarocq.override.version = "v1.5.1-9.2";
-    rocqPackages.metarocq.job = false;
     ## The differential test against the Rust `base64` crate
     rocqPackages.base64-testsuite.job = true;
     push-branches = [ "main" ];
