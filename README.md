@@ -10,20 +10,67 @@
 
 Base64 encoding and **strict** decoding in Rocq, following [RFC 4648](https://www.rfc-editor.org/rfc/rfc4648).
 
-The lemmas are provided on a `ByteString` type class, with instances for `list byte`, the stdlib's
-`String`, Rocq's `PrimString` and MetaRocq's `bytestring`.
 
-
-## Install
-
+## Installation
+The library is available via opam and nixpkgs.
 ```sh
 opam repo add rocq-released https://rocq-prover.org/opam/released
-
 opam install rocq-base64
 ```
 
-## Variants
+## Examples
+Supported string types are `list byte`, the stdlib's `String` and `PrimString`, and MetaRocq's `bytestring`.
 
+### Byte list
+```coq
+From Base64 Require Import All.
+From Stdlib Require Import Strings.String.   (* for list_byte_of_string *)
+
+Compute encode standard (list_byte_of_string "the quick brown fox jumps").
+     (* = list_byte_of_string "dGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcw==" *)
+Compute decode url (list_byte_of_string "Zm9vYg").
+     (* = Some (list_byte_of_string "foob") *)
+```
+
+### Stdlib string
+```coq
+From Base64 Require Import All.
+From Stdlib Require Import Strings.String.
+
+Compute encode standard "foobar"%string.   (* = "Zm9vYmFy"%string *)
+Compute decode url "Zm9vYg"%string.        (* = Some "foob"%string *)
+```
+
+### Primitive string
+```coq
+From Base64 Require Import All.
+From Stdlib Require Import Strings.PrimString.
+
+Compute encode standard "foobar"%pstring.   (* = "Zm9vYmFy"%pstring *)
+Compute decode url "Zm9vYg"%pstring.        (* = Some "foob"%pstring *)
+```
+
+### MetaRocq bytestring
+```coq
+From Base64 Require Import All.
+From Base64 Require Import InstanceBytestring.
+Import MetaRocq.Utils.bytestring.   (* for the "..."%bs literals *)
+
+Compute encode standard "foobar"%bs.     (* = "Zm9vYmFy"%bs *)
+Compute decode standard "Zm9vYmFy"%bs.   (* = Some "foobar"%bs *)
+```
+
+## Tests
+The test suite ensures that this library behaves like the [base64 Rust library](https://crates.io/crates/base64).
+```sh
+nix-build --argstr job base64-testsuite
+```
+Either half runs on its own from the same job's shell, which installs the library both halves test against:
+```sh
+nix-shell --argstr job base64-testsuite --run 'make difftest importtest'
+```
+
+## Variants
 A variant is determined by which characters encode 62 and 63, and whether the output is padded.
 RFC 4648 names two alphabets: the standard `base64` (§4) and `base64url` (§5).
 All four combinations ship:
@@ -37,63 +84,6 @@ All four combinations ship:
 
 The short names are additional Rocq notations, as they are the most commonly used ones.
 
-
-## Examples
-
-### Byte list
-
-```coq
-From Base64 Require Import All.
-From Stdlib Require Import Strings.String.   (* for list_byte_of_string *)
-
-Compute encode standard (list_byte_of_string "the quick brown fox jumps").
-     (* = list_byte_of_string "dGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcw==" *)
-Compute decode url (list_byte_of_string "Zm9vYg").
-     (* = Some (list_byte_of_string "foob") *)
-```
-
-
-### Stdlib string
-
-```coq
-From Base64 Require Import All.
-From Stdlib Require Import Strings.String.
-
-Compute encode standard "foobar"%string.   (* = "Zm9vYmFy"%string *)
-Compute decode url "Zm9vYg"%string.        (* = Some "foob"%string *)
-```
-
-### Primitive string
-
-```coq
-From Base64 Require Import All.
-From Stdlib Require Import Strings.PrimString.
-
-Compute encode standard "foobar"%pstring.   (* = "Zm9vYmFy"%pstring *)
-Compute decode url "Zm9vYg"%pstring.        (* = Some "foob"%pstring *)
-```
-
-### MetaRocq bytestring
-
-```coq
-From Base64 Require Import All.
-From Base64 Require Import InstanceBytestring.
-Import MetaRocq.Utils.bytestring.   (* for the "..."%bs literals *)
-
-Compute encode standard "foobar"%bs.     (* = "Zm9vYmFy"%bs *)
-Compute decode standard "Zm9vYmFy"%bs.   (* = Some "foobar"%bs *)
-```
-
-## Tests
-The test suite ensures that this library behaves like the [base64 Rust library](https://crates.io/crates/base64),
-and compiles the usage examples above against the installed library.
-```sh
-nix-build --argstr job base64-testsuite
-```
-Either half runs on its own from the same job's shell, which installs the library both halves test against:
-```sh
-nix-shell --argstr job base64-testsuite --run 'make difftest importtest'
-```
 
 ## What "strict" means
 Other libraries are forgiving with slightly malformed inputs; the `decode` function of this library only accepts correct inputs.
