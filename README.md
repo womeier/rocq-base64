@@ -9,6 +9,7 @@
 [license-link]: LICENSE
 
 Base64 encoding and **strict** decoding in Rocq, following [RFC 4648](https://www.rfc-editor.org/rfc/rfc4648).
+The library provides the expected round-trip statements, and supports the main string types.
 
 
 ## Installation
